@@ -40,8 +40,8 @@ namespace siteReader
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("Output", "out", "Component messages. Use to check for errors.",
-                GH_ParamAccess.item);
+            pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
+                GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -51,99 +51,41 @@ namespace siteReader
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            //VARIABLES---------------------------------------
             // Input variables
             string currentPath = String.Empty;
 
-            //output variables
-            string outMsg = "";
-
+            //TEST INPUTS-------------------------------------
             // Is input empty?
             if (!DA.GetData(0, ref currentPath)) return;
 
             // Test if file exists
             if (!File.Exists(currentPath))
             {
-                outMsg = "Cannot find file.";
-                DA.SetData(0, outMsg);
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Cannot find file");
                 return;
             }
 
-            bool isCompressed;
-            var impLas = new LASzip.Net.laszip();
-            impLas.open_reader(currentPath, out isCompressed);
-            long numPts;
-            impLas.get_number_of_point(out numPts);
-
-            var vlr = impLas.header.vlrs;
-
-
-            Dictionary<string, string> vlrDict = new Dictionary<string, string>();
-            using (StreamWriter writer = new StreamWriter(@"C:\Users\rober\Desktop\output.txt"))
+            //is .las or .laz?
+            if (!Utility.TestLasExt(currentPath))
             {
-
-
-                foreach (var v in vlr)
-                {
-                    var line = System.Text.Encoding.ASCII.GetString(v.data);
-                    var frags = line.Split(',').ToList();
-
-                    if (frags.Count > 1)
-                    {
-                        for (int i = frags.Count - 1; i >= 0; i--)
-                        {
-                            frags[i] = frags[i].Replace("]", string.Empty);
-                            frags[i] = frags[i].Replace("\"", string.Empty);
-
-                            if (!frags[i].Contains("[") && i != 0)
-                            {
-                                frags[i - 1] += "," + frags[i];
-                                frags.RemoveAt(i);
-                            }
-                        }
-                        frags.Sort();
-
-                        int count = 1;
-                        foreach (var f in frags)
-                        {
-                            var keyVal = f.Split('[');
-
-                            if (!vlrDict.ContainsKey(keyVal[0]))
-                            {
-                                vlrDict.Add(keyVal[0], keyVal[1].Replace(',', ' '));
-                                count = 1;
-                            }
-                            else
-                            {
-                                count++;
-                                vlrDict.Add(keyVal[0] + "_" +  count, keyVal[1].Replace(',', ' '));
-                            }
-
-                        }
-
-                        foreach (var pair in vlrDict)
-                        {
-                            writer.WriteLine(pair.Key + " : "+pair.Value);
-                        }
-                    }
-
-
-                }
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You must provide a valid .las or .laz file.");
+                return;
             }
 
-            var encode = impLas.header.global_encoding;
 
-            DA.SetData(0, encode.ToString());
+
+            bool isCompressed;
+            var impLas = new LASzip.Net.laszip();
+            var vlrDict = LasMethods.VlrDict(impLas, currentPath);
+            var vlrOutput = Utility.DictToGhOut(vlrDict);
+            
+
+           
+
+            DA.SetDataList(0, vlrOutput);
 
         }
-
-        public static List<string> SplitWkt(string wkt)
-        {
-            List<string> result = new List<string>();
-            return result;
-        }
-
-
-
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
