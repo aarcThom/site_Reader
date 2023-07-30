@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Aardvark.Base;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -68,6 +69,29 @@ namespace siteReader
             ptCloud.close_reader();
             return vlrDict;
 
+        }
+
+
+        public static Dictionary<string, float> HeaderDict(LASzip.Net.laszip ptCloud, string curPath)
+        {
+            Dictionary<string, float> headerDict = new Dictionary<string, float>();
+            bool isCompressed;
+
+            ptCloud.open_reader(curPath, out isCompressed);
+
+            long ptCount;
+            ptCloud.get_number_of_point(out ptCount);
+            headerDict.Add("Number of Points", ptCount);
+
+            headerDict.Add("Min X", ptCloud.header.min_x.DoubleToFloat());
+            headerDict.Add("Min Y", ptCloud.header.min_y.DoubleToFloat());
+            headerDict.Add("Min Z", ptCloud.header.min_z.DoubleToFloat());
+            headerDict.Add("Max X", ptCloud.header.max_x.DoubleToFloat());
+            headerDict.Add("Max Y", ptCloud.header.max_y.DoubleToFloat());
+            headerDict.Add("Max Z", ptCloud.header.max_z.DoubleToFloat());
+
+            ptCloud.close_reader();
+            return headerDict;
         }
 
     }

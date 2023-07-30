@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Grasshopper.Kernel;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,21 +30,43 @@ namespace siteReader
         /// <summary>
         /// formats dictionary for GH textual output
         /// </summary>
-        /// <param name="dictIn"></param>
+        /// <param name="stringDict"></param>
         /// <returns>list<string> for GH output</returns>
-        public static List<string> DictToGhOut(Dictionary<string, string> dictIn)
+        public static List<string> StringDictGhOut(Dictionary<string, string> stringDict)
         {
             List<string> ghOut = new List<string>();
 
-            if (dictIn.Count == 0)
+            if (stringDict.Count == 0)
             {
                 return new List<string>{"No VLRs found."};
             }
 
 
-            foreach (string key in dictIn.Keys)
+            foreach (string key in stringDict.Keys)
             {
-                ghOut.Add($"{key} : {dictIn[key]}");
+                ghOut.Add($"{key} : {stringDict[key]}");
+            }
+
+            return ghOut;
+        }
+
+
+        public static List<string> FloatDictGhOut(Dictionary<string, float> floatDict, GH_Component owner)
+        {
+            List<string> ghOut = new List<string>();
+
+            if (floatDict.Count == 0)
+            {
+                owner.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, 
+                    "LAS header not found. The LAS spec. needs a header. " +
+                    "Double check your data source as this will probably cause errors down the road.");
+                return ghOut;
+            }
+
+
+            foreach (string key in floatDict.Keys)
+            {
+                ghOut.Add($"{key} : {floatDict[key]}");
             }
 
             return ghOut;

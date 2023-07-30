@@ -40,8 +40,10 @@ namespace siteReader
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddTextParameter("Header", "header", "Header information.", GH_ParamAccess.list);
             pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
                 GH_ParamAccess.list);
+            
         }
 
         /// <summary>
@@ -73,17 +75,18 @@ namespace siteReader
                 return;
             }
 
-
-
-            bool isCompressed;
             var impLas = new LASzip.Net.laszip();
+
+            var header = LasMethods.HeaderDict(impLas, currentPath);
+            var headerOut = Utility.FloatDictGhOut(header, this);
+
             var vlrDict = LasMethods.VlrDict(impLas, currentPath);
-            var vlrOutput = Utility.DictToGhOut(vlrDict);
-            
+            var vlrOutput = Utility.StringDictGhOut(stringDict:vlrDict);
 
-           
 
-            DA.SetDataList(0, vlrOutput);
+
+            DA.SetDataList(0, headerOut);
+            DA.SetDataList(1, vlrOutput);
 
         }
 
