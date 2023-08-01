@@ -1,6 +1,7 @@
 ﻿using Grasshopper.Kernel;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -70,6 +71,15 @@ namespace siteReader
             }
 
             return ghOut;
+        }
+
+        public static Color ConvertRGB(ushort[] arrIN)
+        {
+            int r = Convert.ToInt32(arrIN[1]).Remap(0, 65535, 0, 255);
+            int b = Convert.ToInt32(arrIN[2]).Remap(0, 65535, 0, 255);
+            int g = Convert.ToInt32(arrIN[3]).Remap(0, 65535, 0, 255);
+
+            return Color.FromArgb(r, b, g);
         }
     }
 }

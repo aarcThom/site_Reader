@@ -52,28 +52,25 @@ namespace siteReader
 
         public void GetPointCloud()
         {
-            PointCloud rPtCloud = new PointCloud();
+
+            rhinoPtCloud = new PointCloud();
             bool isCompressed;
             _laszip.open_reader(_path, out isCompressed);
 
             for (int i  = 0; i < _header["Number of Points"]; i++)
             {
                 double[] coords = new double[3];
-                _laszip.read_point();
+                int ptIndex = _laszip.read_point();
                 _laszip.get_coordinates(coords);
                 var rPoint = new Point3d(coords[0], coords[1], coords[2]);
+
+                ushort[] rgb = _laszip.point.rgb;
+                Color rgbColor = Utility.ConvertRGB(rgb);
+
+                rhinoPtCloud.Add(rPoint, rgbColor);
                 
-                /*
-                 * need to fix this
-                var rgb = _laszip.point.rgb;
-
-                rPtCloud.Add(rPoint, Color.FromArgb(rgb[0], rgb[1], rgb[2]));
-                */
             }
-
-
             _laszip.close_reader();
-            rhinoPtCloud = rPtCloud;
         }
 
     }

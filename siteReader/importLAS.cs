@@ -9,6 +9,8 @@ using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Threading;
+using Aardvark.Base;
+using Rhino.Render;
 
 namespace siteReader
 {
@@ -41,6 +43,7 @@ namespace siteReader
         private FullPointCloud _fullPtCloud;
         private List<string> _headerOut;
         private List<string> _vlrOut;
+        private List<string> test = new List<string>();
         
 
         /// <summary>
@@ -66,7 +69,7 @@ namespace siteReader
             pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
                 GH_ParamAccess.list);
             pManager.AddVectorParameter("Translation Vector", "Translation", "The vector used to translate the pt cloud to origin", GH_ParamAccess.item);
-            pManager.AddNumberParameter("test", "t", "test", GH_ParamAccess.item);
+            pManager.AddTextParameter("test", "t", "test", GH_ParamAccess.list);
             
         }
 
@@ -110,6 +113,7 @@ namespace siteReader
                 _fullPtCloud = new FullPointCloud(currentPath);
                 _fullPtCloud.GetPointCloud();
 
+
                 _headerOut = Utility.FloatDictGhOut(_fullPtCloud.header, this);
                 _vlrOut = Utility.StringDictGhOut(_fullPtCloud.vlr);
 
@@ -131,7 +135,7 @@ namespace siteReader
             DA.SetDataList(0, _headerOut);
             DA.SetDataList(1, _vlrOut);
             DA.SetData(2, _translationVector);
-            DA.SetData(3, _fullPtCloud.rhinoPtCloud.Count);
+            DA.SetDataList(3, test);
 
         }
 
