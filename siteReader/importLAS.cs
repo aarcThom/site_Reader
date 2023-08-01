@@ -8,6 +8,7 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Threading;
 
 namespace siteReader
 {
@@ -27,12 +28,26 @@ namespace siteReader
         {
         }
 
+        //FIELDS
+        private FullPointCloud fullPtCloud;
+        private string _prevPath = String.Empty;
+        private bool _translate = false;
+        private Vector3d _translateChange = Vector3d.Zero;
+        private List<string> _headerOut;
+        private List<string> _vlrOut;
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("file path", "path", "Path to LAS or LAZ file.", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("move to origin?", "translate",
+                "translate the point cloud so that its minimum X,Y,Z values land at the origin", GH_ParamAccess.item, false);
+            pManager[1].Optional = true;
+            pManager.AddVectorParameter("Translation Vector", "Translation", 
+                "Optional translation vector used to keep your data aligned", GH_ParamAccess.item, Vector3d.Zero);
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -43,6 +58,8 @@ namespace siteReader
             pManager.AddTextParameter("Header", "header", "Header information.", GH_ParamAccess.list);
             pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
                 GH_ParamAccess.list);
+            pManager.AddVectorParameter("Translation Vector", "Translation", "The vector used to translate the pt cloud to origin", GH_ParamAccess.item);
+            
             
         }
 
@@ -56,6 +73,11 @@ namespace siteReader
             //VARIABLES---------------------------------------
             // Input variables
             string currentPath = String.Empty;
+            bool translateCloud = false;
+            Vector3d prevTranslation = Vector3d.Zero;
+
+            DA.GetData(1, ref translateCloud);
+            DA.GetData(2, ref prevTranslation);
 
             //TEST INPUTS-------------------------------------
             // Is input empty?
@@ -75,18 +97,47 @@ namespace siteReader
                 return;
             }
 
-            var impLas = new LASzip.Net.laszip();
 
-            var header = LasMethods.HeaderDict(impLas, currentPath);
-            var headerOut = Utility.FloatDictGhOut(header, this);
+            //import the cloud
+            if (_prevPath != currentPath || _translateChange != prevTranslation)
+            {
 
-            var vlrDict = LasMethods.VlrDict(impLas, currentPath);
-            var vlrOutput = Utility.StringDictGhOut(stringDict:vlrDict);
+                var impLas = new LASzip.Net.laszip();
+
+                var header = LasMethods.HeaderDict(impLas, currentPath);
+                _headerOut = Utility.FloatDictGhOut(header, this);
+                
+
+                var vlrDict = LasMethods.VlrDict(impLas, currentPath);
+                _vlrOut = Utility.StringDictGhOut(stringDict: vlrDict);
+                
+
+                fullPtCloud = new FullPointCloud(currentPath, vlrDict, header, prevTranslation);
+
+                _prevPath = currentPath;
+                _translateChange = prevTranslation;
+            }
+
+            //translate the cloud
+            if(_translate != translateCloud || _translateChange != prevTranslation)
+            {
+                if (fullPtCloud != null)
+                {
+                    fullPtCloud.TranslateCloud(translateCloud, this);
+                }
+                _translate = translateCloud;
+            }
+
+
+            DA.SetDataList(0, _headerOut);
+            DA.SetDataList(1, _vlrOut);
+            DA.SetData(2, fullPtCloud.translationVect);
 
 
 
-            DA.SetDataList(0, headerOut);
-            DA.SetDataList(1, vlrOutput);
+
+
+
 
         }
 
