@@ -75,9 +75,9 @@ namespace siteReader
 
         public static Color ConvertRGB(ushort[] arrIN)
         {
-            int r = Convert.ToInt32(arrIN[1]).Remap(0, 65535, 0, 255);
-            int b = Convert.ToInt32(arrIN[2]).Remap(0, 65535, 0, 255);
-            int g = Convert.ToInt32(arrIN[3]).Remap(0, 65535, 0, 255);
+            int r = Convert.ToInt32(arrIN[0]) / 256;
+            int b = Convert.ToInt32(arrIN[1]) / 256;
+            int g = Convert.ToInt32(arrIN[2]) / 256;
 
             return Color.FromArgb(r, b, g);
         }
