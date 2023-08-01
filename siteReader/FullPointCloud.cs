@@ -1,8 +1,10 @@
-﻿using Grasshopper.Kernel;
+﻿using Aardvark.Base;
+using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -50,7 +52,28 @@ namespace siteReader
 
         public void GetPointCloud()
         {
+            PointCloud rPtCloud = new PointCloud();
+            bool isCompressed;
+            _laszip.open_reader(_path, out isCompressed);
 
+            for (int i  = 0; i < _header["Number of Points"]; i++)
+            {
+                double[] coords = new double[3];
+                _laszip.read_point();
+                _laszip.get_coordinates(coords);
+                var rPoint = new Point3d(coords[0], coords[1], coords[2]);
+                
+                /*
+                 * need to fix this
+                var rgb = _laszip.point.rgb;
+
+                rPtCloud.Add(rPoint, Color.FromArgb(rgb[0], rgb[1], rgb[2]));
+                */
+            }
+
+
+            _laszip.close_reader();
+            rhinoPtCloud = rPtCloud;
         }
 
     }

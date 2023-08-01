@@ -38,7 +38,7 @@ namespace siteReader
         private Vector3d _translationVector;
         private Vector3d _prevTransVector = Vector3d.Zero;
 
-        private FullPointCloud fullPtCloud;
+        private FullPointCloud _fullPtCloud;
         private List<string> _headerOut;
         private List<string> _vlrOut;
         
@@ -66,7 +66,7 @@ namespace siteReader
             pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
                 GH_ParamAccess.list);
             pManager.AddVectorParameter("Translation Vector", "Translation", "The vector used to translate the pt cloud to origin", GH_ParamAccess.item);
-            
+            pManager.AddNumberParameter("test", "t", "test", GH_ParamAccess.item);
             
         }
 
@@ -107,10 +107,11 @@ namespace siteReader
             //import the cloud
             if (_prevPath != currentPath)
             {
-                var fullPtCloud = new FullPointCloud(currentPath);
+                _fullPtCloud = new FullPointCloud(currentPath);
+                _fullPtCloud.GetPointCloud();
 
-                _headerOut = Utility.FloatDictGhOut(fullPtCloud.header, this);
-                _vlrOut = Utility.StringDictGhOut(fullPtCloud.vlr);
+                _headerOut = Utility.FloatDictGhOut(_fullPtCloud.header, this);
+                _vlrOut = Utility.StringDictGhOut(_fullPtCloud.vlr);
 
                 _prevPath = currentPath;
             }
@@ -118,9 +119,9 @@ namespace siteReader
             //translate the cloud
             if(_prevTransBool != translateBool || _translationVector != _prevTransVector || _prevPath != currentPath)
             {
-                if (fullPtCloud != null)
+                if (_fullPtCloud != null)
                 {
-                    _translationVector = LasMethods.TranslateCloud(translateBool, fullPtCloud, this, _translationVector);
+                    _translationVector = LasMethods.TranslateCloud(translateBool, _fullPtCloud, this, _translationVector);
                 }
                 _prevTransBool = translateBool;
                 _prevTransVector = _translationVector;
@@ -130,12 +131,7 @@ namespace siteReader
             DA.SetDataList(0, _headerOut);
             DA.SetDataList(1, _vlrOut);
             DA.SetData(2, _translationVector);
-
-
-
-
-
-
+            DA.SetData(3, _fullPtCloud.rhinoPtCloud.Count);
 
         }
 
@@ -154,6 +150,35 @@ namespace siteReader
         /// </summary>
         public override Guid ComponentGuid => new Guid("FF31124B-CEA9-474D-9C1A-FB5132D77D74");
 
+
+        //PREVIEW OVERRIDES --------------------------------------------------------
+        //drawing the point cloud if preview is enabled
+        public override void DrawViewportWires(IGH_PreviewArgs args)
+        {
+            if (_fullPtCloud != null)
+            {
+                args.Display.DrawPointCloud(_fullPtCloud.rhinoPtCloud, 1);
+            }
+                
+        }
+
+        //Return a BoundingBox that contains all the geometry you are about to draw.
+        public override BoundingBox ClippingBox
+        {
+            get
+            {
+                if (_fullPtCloud != null)
+                {
+                    return _fullPtCloud.rhinoPtCloud.GetBoundingBox(true);
+                }
+
+                return base.ClippingBox;
+
+            }
+        }
+
+        //need to override this to be previewable despite having no geo output
+        public override bool IsPreviewCapable => true;
 
     }
 }
