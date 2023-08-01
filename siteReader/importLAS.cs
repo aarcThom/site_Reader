@@ -107,18 +107,10 @@ namespace siteReader
             //import the cloud
             if (_prevPath != currentPath)
             {
+                var fullPtCloud = new FullPointCloud(currentPath);
 
-                var impLas = new LASzip.Net.laszip();
-
-                var header = LasMethods.HeaderDict(impLas, currentPath);
-                _headerOut = Utility.FloatDictGhOut(header, this);
-                
-
-                var vlrDict = LasMethods.VlrDict(impLas, currentPath);
-                _vlrOut = Utility.StringDictGhOut(stringDict: vlrDict);
-                
-
-                fullPtCloud = new FullPointCloud(currentPath, vlrDict, header);
+                _headerOut = Utility.FloatDictGhOut(fullPtCloud.header, this);
+                _vlrOut = Utility.StringDictGhOut(fullPtCloud.vlr);
 
                 _prevPath = currentPath;
             }

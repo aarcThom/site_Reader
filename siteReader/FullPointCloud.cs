@@ -12,22 +12,30 @@ namespace siteReader
     public class FullPointCloud
     {
         //constructor
-        public FullPointCloud(string path, Dictionary<string, string> vlr, Dictionary<string,float> header)
+        public FullPointCloud(string path)
         {
             _path = path;
-            _vlr = vlr;
-            _header = header;
-            translationVect = _prevVect;
+            _laszip = new LASzip.Net.laszip();
+
+            _vlr = LasMethods.VlrDict(_laszip, _path);
+            _header = LasMethods.HeaderDict(_laszip, _path);
         }
 
         //fields
+        private LASzip.Net.laszip _laszip;
         private readonly string _path;
+
         private readonly Dictionary<string, string> _vlr;
         private readonly Dictionary<string, float> _header;
-        private readonly Vector3d _prevVect; 
 
         //properties
         public Vector3d translationVect { get; set; }
+        public Dictionary<string, float> header => _header;
+        public Dictionary<string, string> vlr => _vlr;
+        public string path => _path;
+
+        public PointCloud rhinoPtCloud { get; set; }
+
 
         //methods
         
@@ -38,6 +46,11 @@ namespace siteReader
             float y = _header["Min Y"];
 
             return new Vector3d(-x, -y, 0);
+        }
+
+        public void GetPointCloud()
+        {
+
         }
 
     }
