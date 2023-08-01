@@ -1,4 +1,6 @@
 ﻿using Aardvark.Base;
+using Grasshopper.Kernel;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -92,6 +94,30 @@ namespace siteReader
 
             ptCloud.close_reader();
             return headerDict;
+        }
+
+        public static Vector3d TranslateCloud(bool translate, FullPointCloud cloud, GH_Component owner, Vector3d inVector)
+        {
+            if (inVector != Vector3d.Zero && translate)
+            {
+                owner.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                    "You can not re-translate a cloud with a provided translation vector.");
+                return inVector;
+            }
+
+            if (translate && inVector == Vector3d.Zero)
+            {
+                return cloud.GetTranslation();
+            }
+
+            if (!translate && inVector == Vector3d.Zero)
+            {
+                return Vector3d.Zero;
+            }
+
+            //clear messages
+            owner.AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, "");
+            return inVector;
         }
 
     }

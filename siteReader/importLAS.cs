@@ -29,12 +29,19 @@ namespace siteReader
         }
 
         //FIELDS
-        private FullPointCloud fullPtCloud;
+        
+
         private string _prevPath = String.Empty;
-        private bool _translate = false;
-        private Vector3d _translateChange = Vector3d.Zero;
+        
+        private bool _prevTransBool = false;
+
+        private Vector3d _translationVector;
+        private Vector3d _prevTransVector = Vector3d.Zero;
+
+        private FullPointCloud fullPtCloud;
         private List<string> _headerOut;
         private List<string> _vlrOut;
+        
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -73,11 +80,10 @@ namespace siteReader
             //VARIABLES---------------------------------------
             // Input variables
             string currentPath = String.Empty;
-            bool translateCloud = false;
-            Vector3d prevTranslation = Vector3d.Zero;
+            bool translateBool = false;
 
-            DA.GetData(1, ref translateCloud);
-            DA.GetData(2, ref prevTranslation);
+            DA.GetData(1, ref translateBool);
+            DA.GetData(2, ref _translationVector);
 
             //TEST INPUTS-------------------------------------
             // Is input empty?
@@ -99,7 +105,7 @@ namespace siteReader
 
 
             //import the cloud
-            if (_prevPath != currentPath || _translateChange != prevTranslation)
+            if (_prevPath != currentPath)
             {
 
                 var impLas = new LASzip.Net.laszip();
@@ -112,26 +118,26 @@ namespace siteReader
                 _vlrOut = Utility.StringDictGhOut(stringDict: vlrDict);
                 
 
-                fullPtCloud = new FullPointCloud(currentPath, vlrDict, header, prevTranslation);
+                fullPtCloud = new FullPointCloud(currentPath, vlrDict, header);
 
                 _prevPath = currentPath;
-                _translateChange = prevTranslation;
             }
 
             //translate the cloud
-            if(_translate != translateCloud || _translateChange != prevTranslation)
+            if(_prevTransBool != translateBool || _translationVector != _prevTransVector || _prevPath != currentPath)
             {
                 if (fullPtCloud != null)
                 {
-                    fullPtCloud.TranslateCloud(translateCloud, this);
+                    _translationVector = LasMethods.TranslateCloud(translateBool, fullPtCloud, this, _translationVector);
                 }
-                _translate = translateCloud;
+                _prevTransBool = translateBool;
+                _prevTransVector = _translationVector;
             }
 
 
             DA.SetDataList(0, _headerOut);
             DA.SetDataList(1, _vlrOut);
-            DA.SetData(2, fullPtCloud.translationVect);
+            DA.SetData(2, _translationVector);
 
 
 

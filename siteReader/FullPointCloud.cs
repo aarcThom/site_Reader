@@ -9,16 +9,14 @@ using System.Threading.Tasks;
 
 namespace siteReader
 {
-    internal class FullPointCloud
+    public class FullPointCloud
     {
         //constructor
-        public FullPointCloud(string path, Dictionary<string, string> vlr, Dictionary<string,float> header, Vector3d prevTranslation)
+        public FullPointCloud(string path, Dictionary<string, string> vlr, Dictionary<string,float> header)
         {
             _path = path;
             _vlr = vlr;
             _header = header;
-
-            _prevVect = prevTranslation;
             translationVect = _prevVect;
         }
 
@@ -32,32 +30,14 @@ namespace siteReader
         public Vector3d translationVect { get; set; }
 
         //methods
-        public void TranslateCloud(bool translate, GH_Component owner)
+        
+
+        public Vector3d GetTranslation()
         {
-            if (_prevVect != Vector3d.Zero && translate)
-            {
-                owner.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, 
-                    "You can not re-translate a cloud with a provided translation vector.");
-                return;
-            }
+            float x = _header["Min X"];
+            float y = _header["Min Y"];
 
-            if (translate && _prevVect == Vector3d.Zero)
-            {
-                translationVect = new Vector3d(99, 99, 99);
-                return;
-            }
-
-            if (!translate && _prevVect == Vector3d.Zero)
-            {
-                translationVect = new Vector3d(0, 0, 0);
-                return;
-            }
-
-            if (_prevVect != Vector3d.Zero && !translate)
-            {
-                //clear messages
-                owner.AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, "");
-            }
+            return new Vector3d(-x, -y, 0);
         }
 
     }
