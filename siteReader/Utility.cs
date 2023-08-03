@@ -81,5 +81,14 @@ namespace siteReader
 
             return Color.FromArgb(r, b, g);
         }
+
+        public static Dictionary<string, string> RemoveDups(List<string> list) 
+        {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+
+
+
+            return dict;
+        }
     }
 }

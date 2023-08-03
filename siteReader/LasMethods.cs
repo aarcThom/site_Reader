@@ -51,19 +51,9 @@ namespace siteReader
                         int count = 1;
                         foreach (var f in frags)
                         {
+                            f.Replace(',', ' ');
                             var keyVal = f.Split('[');
-
-                            if (!vlrDict.ContainsKey(keyVal[0]))
-                            {
-                                vlrDict.Add(keyVal[0], keyVal[1].Replace(',', ' '));
-                                count = 1;
-                            }
-                            else
-                            {
-                                count++;
-                                vlrDict.Add(keyVal[0] + "_" + count, keyVal[1].Replace(',', ' '));
-                            }
-
+                            vlrDict.AddDup(keyVal[0], keyVal[1]);
                         }
                     }
                 }

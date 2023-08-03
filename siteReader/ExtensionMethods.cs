@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Aardvark.Base;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,9 +9,28 @@ namespace siteReader
 {
     public static class ExtensionMethods
     {
-        public static int Remap(this int value, int from1, int to1, int from2, int to2)
+        /// <summary>
+        /// Appeands '_#' to a duplicate key in a dictionary where # is the existing number of keys that contain the input key
+        /// </summary>
+        /// <param name="baseDictionary"></param>
+        /// <param name="dKey"></param>
+        /// <param name="dVal"></param>
+        public static void AddDup(this Dictionary<string, string> baseDictionary, string dKey, string dVal)
         {
-            return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
+            if (baseDictionary.ContainsKey(dKey)) 
+            {
+                // get the count of dKey substring
+                int subStringCount = baseDictionary.Keys.Count(kys => kys.Contains(dKey));
+
+                string newKey = $"{dKey}_{subStringCount}";
+                baseDictionary.Add(newKey, dVal);
+
+            }
+            else
+            {
+                baseDictionary.Add(dKey, dVal);
+            }
+          
         }
     }
 }
