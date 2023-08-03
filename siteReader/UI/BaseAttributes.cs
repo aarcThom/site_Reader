@@ -307,7 +307,7 @@ namespace SiteReader.UI
         {
 
             if (e.Button == MouseButtons.Left && _currentlySliding)
-            {
+{
                 _returnSliderVal(_cloudDensity); // return the final value
 
                 // again, we don't want to refresh the solution until the display button is clicked
