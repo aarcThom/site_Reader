@@ -44,7 +44,15 @@ namespace siteReader
         private List<string> _headerOut;
         private List<string> _vlrOut;
         private List<string> test = new List<string>();
-        
+
+        //view attributes
+        private float _cloudDensity = 0f;
+        private bool _previewCloud = false;
+
+
+
+
+
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -108,9 +116,9 @@ namespace siteReader
 
 
             //import the cloud
-            if (_prevPath != currentPath)
+            if (_prevPath != currentPath && _previewCloud)
             {
-                _fullPtCloud = new FullPointCloud(currentPath);
+                _fullPtCloud = new FullPointCloud(currentPath, _cloudDensity);
                 _fullPtCloud.GetPointCloud();
 
 
@@ -155,11 +163,31 @@ namespace siteReader
         public override Guid ComponentGuid => new Guid("FF31124B-CEA9-474D-9C1A-FB5132D77D74");
 
 
-        //PREVIEW OVERRIDES --------------------------------------------------------
+        //PREVIEW OVERRIDES AND UI METHODS ---------------------------------------------------
+
+        //methods for passing values from UI controller
+        public void SetVal(float value)
+        {
+            _cloudDensity = value;
+        }
+
+        public void SetPreview(bool preview)
+        {
+            _previewCloud = preview;
+        }
+
+        //This region overrides the typical component layout
+        public override void CreateAttributes()
+        {
+            m_attributes = new SiteReader.UI.BaseAttributes(this, SetVal, SetPreview);
+        }
+
+
+
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_fullPtCloud != null)
+            if (_fullPtCloud != null && _previewCloud)
             {
                 args.Display.DrawPointCloud(_fullPtCloud.rhinoPtCloud, 1);
             }
@@ -171,7 +199,7 @@ namespace siteReader
         {
             get
             {
-                if (_fullPtCloud != null)
+                if (_fullPtCloud != null && _previewCloud)
                 {
                     return _fullPtCloud.rhinoPtCloud.GetBoundingBox(true);
                 }

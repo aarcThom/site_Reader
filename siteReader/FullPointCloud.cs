@@ -14,13 +14,16 @@ namespace siteReader
     public class FullPointCloud
     {
         //constructor
-        public FullPointCloud(string path)
+        public FullPointCloud(string path, float viewDensity)
         {
             _path = path;
             _laszip = new LASzip.Net.laszip();
 
             _vlr = LasMethods.VlrDict(_laszip, _path);
             _header = LasMethods.HeaderDict(_laszip, _path);
+
+            maxDisplayDensity = viewDensity;
+
         }
 
         //fields
@@ -37,6 +40,9 @@ namespace siteReader
         public string path => _path;
 
         public PointCloud rhinoPtCloud { get; set; }
+
+        public float maxDisplayDensity { get; set; }
+
 
 
         //methods
@@ -57,7 +63,9 @@ namespace siteReader
             bool isCompressed;
             _laszip.open_reader(_path, out isCompressed);
 
-            for (int i  = 0; i < _header["Number of Points"]; i++)
+            int pointCount = (_header["Number of Points"]).ToInt();
+
+            for (int i  = 0; i < pointCount; i++)
             {
                 double[] coords = new double[3];
                 int ptIndex = _laszip.read_point();
