@@ -38,7 +38,6 @@ namespace siteReader
         private bool _prevTransBool = false;
 
         private Vector3d _translationVector;
-        private Vector3d _prevTransVector = Vector3d.Zero;
 
         private FullPointCloud _fullPtCloud;
         private List<string> _headerOut;
@@ -64,7 +63,7 @@ namespace siteReader
                 "translate the point cloud so that its minimum X,Y,Z values land at the origin", GH_ParamAccess.item, false);
             pManager[1].Optional = true;
             pManager.AddVectorParameter("Translation Vector", "Translation", 
-                "Optional translation vector used to keep your data aligned", GH_ParamAccess.item, Vector3d.Zero);
+                "Optional translation vector used to keep your data aligned", GH_ParamAccess.item, Vector3d.Unset);
             pManager[2].Optional = true;
         }
 
@@ -92,9 +91,10 @@ namespace siteReader
             // Input variables
             string currentPath = String.Empty;
             bool translateBool = false;
+            Vector3d translateIn = Vector3d.Unset;
 
             DA.GetData(1, ref translateBool);
-            DA.GetData(2, ref _translationVector);
+            DA.GetData(2, ref translateIn);
 
             //TEST INPUTS-------------------------------------
             // Is input empty?
@@ -124,19 +124,23 @@ namespace siteReader
 
                 _headerOut = Utility.FloatDictGhOut(_fullPtCloud.header, this);
                 _vlrOut = Utility.StringDictGhOut(_fullPtCloud.vlr);
+                _translationVector = _fullPtCloud.GetTranslation();
 
                 _prevPath = currentPath;
             }
 
             //translate the cloud
-            if(_prevTransBool != translateBool || _translationVector != _prevTransVector || _prevPath != currentPath)
+            if ((_prevTransBool != translateBool || _prevPath != currentPath) && _fullPtCloud != null)
             {
-                if (_fullPtCloud != null)
+                if (!translateBool && _prevPath != currentPath)
                 {
-                    _translationVector = LasMethods.TranslateCloud(translateBool, _fullPtCloud, this, _translationVector);
+                    _fullPtCloud.translationVect *= -1;
+                    _prevPath = currentPath;
                 }
+
+                _fullPtCloud.MovePointCloud();
                 _prevTransBool = translateBool;
-                _prevTransVector = _translationVector;
+                Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
             }
 
 

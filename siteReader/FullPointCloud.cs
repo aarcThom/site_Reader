@@ -23,7 +23,7 @@ namespace siteReader
             _header = LasMethods.HeaderDict(_laszip, _path);
 
             maxDisplayDensity = viewDensity;
-
+            translationVect = GetTranslation();
         }
 
         //fields
@@ -32,6 +32,8 @@ namespace siteReader
 
         private readonly Dictionary<string, string> _vlr;
         private readonly Dictionary<string, float> _header;
+
+        public bool isTranslated;
 
         //properties
         public Vector3d translationVect { get; set; }
@@ -88,6 +90,13 @@ namespace siteReader
                 if (ptIndex == 10) ptIndex = 0;
             }
             _laszip.close_reader();
+        }
+
+        public void MovePointCloud()
+        {
+            Transform cloudTransform = Transform.Translation(translationVect);
+            rhinoPtCloud.Transform(cloudTransform);
+            translationVect *= -1;
         }
 
     }
