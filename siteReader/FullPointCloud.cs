@@ -64,19 +64,28 @@ namespace siteReader
             _laszip.open_reader(_path, out isCompressed);
 
             int pointCount = (_header["Number of Points"]).ToInt();
+            List<int> ptIndices = LasMethods.GetPointIndices(maxDisplayDensity);
+
+            int ptIndex = 0;
 
             for (int i  = 0; i < pointCount; i++)
             {
-                double[] coords = new double[3];
-                int ptIndex = _laszip.read_point();
-                _laszip.get_coordinates(coords);
-                var rPoint = new Point3d(coords[0], coords[1], coords[2]);
+                _laszip.read_point();
 
-                ushort[] rgb = _laszip.point.rgb;
-                Color rgbColor = Utility.ConvertRGB(rgb);
+                if (ptIndices.Contains(ptIndex))
+                {
+                    double[] coords = new double[3];
+                    _laszip.get_coordinates(coords);
+                    var rPoint = new Point3d(coords[0], coords[1], coords[2]);
 
-                rhinoPtCloud.Add(rPoint, rgbColor);
-                
+                    ushort[] rgb = _laszip.point.rgb;
+                    Color rgbColor = Utility.ConvertRGB(rgb);
+
+                    rhinoPtCloud.Add(rPoint, rgbColor);
+                }
+
+                ptIndex++;
+                if (ptIndex == 10) ptIndex = 0;
             }
             _laszip.close_reader();
         }

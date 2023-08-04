@@ -110,5 +110,47 @@ namespace siteReader
             return inVector;
         }
 
+        public static List<int> GetPointIndices(float density)
+        {
+            List<int> indices = new List<int>();
+
+            switch (density)
+            {   
+                case 0.1f:
+                    indices = new List<int>() { 5 };
+                    break;
+                case 0.2f:
+                    indices = new List<int>() { 3, 7 };
+                    break;
+                case 0.3f:
+                    indices = new List<int>() { 2, 6, 8};
+                    break;
+                case 0.4f:
+                    indices = new List<int>() { 0, 3, 6, 9 };
+                    break;
+                case 0.5f:
+                    indices = new List<int>() { 1, 3, 5, 7, 9 };
+                    break;
+                case 0.6f:
+                    indices = new List<int>() { 0, 2, 3, 5, 6, 8 };
+                    break;
+                case 0.7f:
+                    indices = new List<int>() { 0, 1, 3, 4, 6, 7, 8};
+                    break;
+                case 0.8f:
+                    indices = new List<int>() { 0, 1, 3, 4, 5, 6, 8, 9 };
+                    break;
+                case 0.9f:
+                    indices = new List<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+                    break;
+                case 1f:
+                    indices = new List<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+                    break;
+            }
+
+
+            return indices;
+        }
+
     }
 }
