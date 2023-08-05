@@ -4,6 +4,7 @@ using Grasshopper.Kernel.Data;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -24,6 +25,8 @@ namespace siteReader
 
             maxDisplayDensity = viewDensity;
             translationVect = GetTranslation();
+
+            format = LasMethods.GetPointFormat(_laszip, _path);
         }
 
         //fields
@@ -34,6 +37,7 @@ namespace siteReader
         private readonly Dictionary<string, float> _header;
 
         public bool isTranslated;
+        public byte format;
 
         //properties
         public Vector3d translationVect { get; set; }
@@ -80,10 +84,19 @@ namespace siteReader
                     _laszip.get_coordinates(coords);
                     var rPoint = new Point3d(coords[0], coords[1], coords[2]);
 
-                    ushort[] rgb = _laszip.point.rgb;
-                    Color rgbColor = Utility.ConvertRGB(rgb);
 
-                    rhinoPtCloud.Add(rPoint, rgbColor);
+                    if (LasMethods.ContainsRGB(format))
+                    {
+                        ushort[] rgb = _laszip.point.rgb;
+                        Color rgbColor = Utility.ConvertRGB(rgb);
+                        rhinoPtCloud.Add(rPoint, rgbColor);
+                    } 
+                    else
+                    {
+                        rhinoPtCloud.Add(rPoint, Color.Blue);
+                    }
+                    
+
                 }
 
                 ptIndex++;

@@ -126,7 +126,6 @@ namespace siteReader
                     _fullPtCloud.MovePointCloud();
                 }
 
-
                 _headerOut = Utility.FloatDictGhOut(_fullPtCloud.header, this);
                 _vlrOut = Utility.StringDictGhOut(_fullPtCloud.vlr);
                 _translationVector = _fullPtCloud.translationVect;
@@ -146,7 +145,7 @@ namespace siteReader
             DA.SetDataList(0, _headerOut);
             DA.SetDataList(1, _vlrOut);
             DA.SetData(2, _translationVector);
-            DA.SetDataList(3, test);
+            
 
         }
 
@@ -192,7 +191,7 @@ namespace siteReader
         {
             if (_fullPtCloud != null && _previewCloud)
             {
-                args.Display.DrawPointCloud(_fullPtCloud.rhinoPtCloud, 1);
+                args.Display.DrawPointCloud(_fullPtCloud.rhinoPtCloud, 2);
             }
                 
         }

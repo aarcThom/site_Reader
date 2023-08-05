@@ -75,6 +75,7 @@ namespace siteReader
             ptCloud.get_number_of_point(out ptCount);
             headerDict.Add("Number of Points", ptCount);
 
+
             headerDict.Add("Min X", ptCloud.header.min_x.DoubleToFloat());
             headerDict.Add("Min Y", ptCloud.header.min_y.DoubleToFloat());
             headerDict.Add("Min Z", ptCloud.header.min_z.DoubleToFloat());
@@ -128,5 +129,29 @@ namespace siteReader
             return indices;
         }
 
+        public static byte GetPointFormat(LASzip.Net.laszip ptCloud, string curPath)
+        {
+            byte format = 0;
+
+            bool isCompressed;
+            ptCloud.open_reader(curPath, out isCompressed);
+
+            format = ptCloud.header.point_data_format;
+
+            ptCloud.close_reader();
+
+            return format;
+        }
+
+        public static bool ContainsRGB(byte format)
+        {
+            byte[] RGBformats = new byte[] {2, 3, 5, 7, 8, 10};
+
+            if (RGBformats.Contains(format))
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }
