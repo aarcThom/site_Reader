@@ -34,10 +34,9 @@ namespace siteReader
         
 
         private string _prevPath = String.Empty;
-        
-        private bool _prevTransBool = false;
 
         private Vector3d _translationVector;
+        private bool _translateBool;
 
         private FullPointCloud _fullPtCloud;
         private List<string> _headerOut;
@@ -90,10 +89,9 @@ namespace siteReader
             //VARIABLES---------------------------------------
             // Input variables
             string currentPath = String.Empty;
-            bool translateBool = false;
             Vector3d translateIn = Vector3d.Unset;
 
-            DA.GetData(1, ref translateBool);
+            DA.GetData(1, ref _translateBool);
             DA.GetData(2, ref translateIn);
 
             //TEST INPUTS-------------------------------------
@@ -116,29 +114,23 @@ namespace siteReader
 
 
             //import the cloud
-            if (_prevPath != currentPath && _previewCloud)
+            if (_prevPath != currentPath)
             {
                 _fullPtCloud = new FullPointCloud(currentPath, _cloudDensity);
-                _fullPtCloud.GetPointCloud();
-                
-                if (translateBool)
-                {
-                    _fullPtCloud.MovePointCloud();
-                }
 
                 _headerOut = Utility.FloatDictGhOut(_fullPtCloud.header, this);
                 _vlrOut = Utility.StringDictGhOut(_fullPtCloud.vlr);
                 _translationVector = _fullPtCloud.translationVect;
 
                 _prevPath = currentPath;
-            }
 
-            //translate the cloud
-            if (_prevTransBool != translateBool  && _fullPtCloud != null)
+                VizCloud();
+                TranslateCloud();
+            }
+            else
             {
-                _fullPtCloud.MovePointCloud();
-                _prevTransBool = translateBool;
-                Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
+                VizCloud();
+                TranslateCloud();
             }
 
 
@@ -189,7 +181,7 @@ namespace siteReader
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_fullPtCloud != null && _previewCloud)
+            if (_fullPtCloud.rhinoPtCloud != null && _previewCloud)
             {
                 args.Display.DrawPointCloud(_fullPtCloud.rhinoPtCloud, 2);
             }
@@ -201,7 +193,7 @@ namespace siteReader
         {
             get
             {
-                if (_fullPtCloud != null && _previewCloud)
+                if (_fullPtCloud != null && _fullPtCloud.rhinoPtCloud != null && _previewCloud)
                 {
                     return _fullPtCloud.rhinoPtCloud.GetBoundingBox(true);
                 }
@@ -213,6 +205,29 @@ namespace siteReader
 
         //need to override this to be previewable despite having no geo output
         public override bool IsPreviewCapable => true;
+
+        //OTHER METHODS-------------------------------------------------------------------
+
+        private void VizCloud()
+        {
+            if (_previewCloud && _fullPtCloud != null && _fullPtCloud.maxDisplayDensity != _cloudDensity)
+            {
+                _fullPtCloud.maxDisplayDensity = _cloudDensity;
+                _fullPtCloud.GetPointCloud();
+                Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
+            }
+        }
+
+        private void TranslateCloud()
+        {
+            if (_fullPtCloud.rhinoPtCloud != null && _fullPtCloud.isTranslated != _translateBool)
+            {
+                _fullPtCloud.MovePointCloud();
+                Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
+            }
+        }
+
+
 
     }
 }
