@@ -36,7 +36,7 @@ namespace siteReader
         private readonly Dictionary<string, string> _vlr;
         private readonly Dictionary<string, float> _header;
 
-        public bool isTranslated;
+        public bool isTranslated = false;
         public byte format;
 
         //properties
@@ -93,7 +93,7 @@ namespace siteReader
                     } 
                     else
                     {
-                        rhinoPtCloud.Add(rPoint, Color.Blue);
+                        rhinoPtCloud.Add(rPoint);
                     }
                     
 
@@ -110,6 +110,7 @@ namespace siteReader
             Transform cloudTransform = Transform.Translation(translationVect);
             rhinoPtCloud.Transform(cloudTransform);
             translationVect *= -1;
+            isTranslated = !isTranslated;
         }
 
     }
