@@ -120,24 +120,23 @@ namespace siteReader
             {
                 _fullPtCloud = new FullPointCloud(currentPath, _cloudDensity);
                 _fullPtCloud.GetPointCloud();
+                
+                if (translateBool)
+                {
+                    _fullPtCloud.MovePointCloud();
+                }
 
 
                 _headerOut = Utility.FloatDictGhOut(_fullPtCloud.header, this);
                 _vlrOut = Utility.StringDictGhOut(_fullPtCloud.vlr);
-                _translationVector = _fullPtCloud.GetTranslation();
+                _translationVector = _fullPtCloud.translationVect;
 
                 _prevPath = currentPath;
             }
 
             //translate the cloud
-            if ((_prevTransBool != translateBool || _prevPath != currentPath) && _fullPtCloud != null)
+            if (_prevTransBool != translateBool  && _fullPtCloud != null)
             {
-                if (!translateBool && _prevPath != currentPath)
-                {
-                    _fullPtCloud.translationVect *= -1;
-                    _prevPath = currentPath;
-                }
-
                 _fullPtCloud.MovePointCloud();
                 _prevTransBool = translateBool;
                 Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
