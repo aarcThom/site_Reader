@@ -23,7 +23,6 @@ namespace siteReader
             _vlr = LasMethods.VlrDict(_laszip, _path);
             _header = LasMethods.HeaderDict(_laszip, _path);
             _translationVect = GetTranslation();
-            _userProvidedVect = Vector3d.Unset;
 
             _format = LasMethods.GetPointFormat(_laszip, _path);
         }
@@ -37,13 +36,17 @@ namespace siteReader
 
         private bool _isTranslated = false;
         private Vector3d _translationVect;
-        private Vector3d _userProvidedVect;
+        private Vector3d _userProvidedVect = Vector3d.Zero;
 
         private byte _format;
 
         //properties
         public Vector3d translationVect => GetTranslation();
-        public Vector3d userProvidedVect => _userProvidedVect;
+        public Vector3d userProvidedVect 
+        {
+            get { return _userProvidedVect; }
+            set { _userProvidedVect = SetUserMove(value); }
+        }
         public bool isTranslated => _isTranslated;
 
         public Dictionary<string, float> header => _header;
@@ -120,11 +123,27 @@ namespace siteReader
             _isTranslated = !_isTranslated;
         }
 
-        public void UserMoveCloud(Vector3d vector)
+        private Vector3d SetUserMove(Vector3d vectIn)
         {
-            _userProvidedVect = vector;
-            Transform cloudTransform = Transform.Translation(vector);
-            rhinoPtCloud.Transform(cloudTransform);
+            if (rhinoPtCloud != null)
+            {
+
+                if (vectIn != _userProvidedVect)
+                {
+                    //move the cloud back to its original position
+                    Transform cloudTransform = Transform.Translation(_userProvidedVect * -1);
+                    rhinoPtCloud.Transform(cloudTransform);
+                }
+
+                Transform cloudTransform2 = Transform.Translation(vectIn);
+                rhinoPtCloud.Transform(cloudTransform2);
+                return vectIn;
+            }
+
+            return _userProvidedVect;
+
         }
+
+
     }
 }

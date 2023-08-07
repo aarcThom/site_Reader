@@ -57,7 +57,7 @@ namespace siteReader
                 "translate the point cloud so that its minimum X,Y,Z values land at the origin", GH_ParamAccess.item, false);
             pManager[1].Optional = true;
             pManager.AddVectorParameter("Translation Vector", "Translation",
-                "Optional translation vector used to keep your data aligned", GH_ParamAccess.item, Vector3d.Unset);
+                "Optional translation vector used to keep your data aligned", GH_ParamAccess.item, Vector3d.Zero);
             pManager[2].Optional = true;
         }
 
@@ -130,7 +130,6 @@ namespace siteReader
             MoveCloud();
 
             //move by user provided vector if needed
-            UserMoveCloud();
 
 
             DA.SetDataList(0, _headerOut);
@@ -221,29 +220,18 @@ namespace siteReader
 
         private void MoveCloud(bool overRide = false)
         {
-            if (((_fullPtCloud.rhinoPtCloud != null && _fullPtCloud.isTranslated != _userTranslateCloud) || overRide) 
-                && _userProvidedVector != Vector3d.Unset)
+            if ((_fullPtCloud.rhinoPtCloud != null && _fullPtCloud.isTranslated != _userTranslateCloud) || overRide)
             {
                 _fullPtCloud.MovePointCloud();
                 Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
             }
-            
-        }
 
-        private void UserMoveCloud()
-        {
-            if (_userProvidedVector != _fullPtCloud.userProvidedVect)
+            if ( _userProvidedVector != _fullPtCloud.userProvidedVect || overRide)
             {
-                if (_userProvidedVector != Vector3d.Unset)
-                {
-                    _fullPtCloud.UserMoveCloud(_userProvidedVector);
-                }
-                else
-                {
-                    _fullPtCloud.UserMoveCloud(_fullPtCloud.userProvidedVect * -1);
-                }
-                
+                _fullPtCloud.userProvidedVect = _userProvidedVector;
+                Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
             }
+            
         }
     }
 }
