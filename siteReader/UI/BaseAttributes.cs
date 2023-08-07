@@ -224,7 +224,7 @@ namespace SiteReader.UI
         //handling double clicks
         public override GH_ObjectResponse RespondToMouseDoubleClick(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
-            if (e.Button == MouseButtons.Left && Owner.RuntimeMessageLevel == GH_RuntimeMessageLevel.Blank)
+            if (e.Button == MouseButtons.Left)
             {
                 if (_buttonBounds.Contains(e.CanvasLocation))
                 {
@@ -243,7 +243,7 @@ namespace SiteReader.UI
         //handling slider
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
-            if (e.Button == MouseButtons.Left && !_previewCloud && Owner.RuntimeMessageLevel == GH_RuntimeMessageLevel.Blank)
+            if (e.Button == MouseButtons.Left && !_previewCloud)
             {
                 if (_handleShape.Contains(e.CanvasLocation))
                 {

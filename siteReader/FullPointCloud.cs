@@ -12,21 +12,19 @@ using System.Threading.Tasks;
 
 namespace siteReader
 {
-    public class FullPointCloud
+    public class LasPtCloud
     {
         //constructor
-        public FullPointCloud(string path, float viewDensity)
+        public LasPtCloud(string path)
         {
             _path = path;
             _laszip = new LASzip.Net.laszip();
 
             _vlr = LasMethods.VlrDict(_laszip, _path);
             _header = LasMethods.HeaderDict(_laszip, _path);
+            _translationVect = GetTranslation();
 
-            maxDisplayDensity = viewDensity;
-            translationVect = GetTranslation();
-
-            format = LasMethods.GetPointFormat(_laszip, _path);
+            _format = LasMethods.GetPointFormat(_laszip, _path);
         }
 
         //fields
@@ -36,11 +34,15 @@ namespace siteReader
         private readonly Dictionary<string, string> _vlr;
         private readonly Dictionary<string, float> _header;
 
-        public bool isTranslated = false;
-        public byte format;
+        private bool _isTranslated = false;
+        private Vector3d _translationVect;
+
+        private byte _format;
 
         //properties
-        public Vector3d translationVect { get; set; }
+        public Vector3d translationVect => GetTranslation();
+        public bool isTranslated => _isTranslated;
+
         public Dictionary<string, float> header => _header;
         public Dictionary<string, string> vlr => _vlr;
         public string path => _path;
@@ -49,12 +51,14 @@ namespace siteReader
 
         public float maxDisplayDensity { get; set; }
 
+        public byte pointFormat => _format;
+
 
 
         //methods
         
 
-        public Vector3d GetTranslation()
+        private Vector3d GetTranslation()
         {
             float x = _header["Min X"];
             float y = _header["Min Y"];
@@ -85,7 +89,7 @@ namespace siteReader
                     var rPoint = new Point3d(coords[0], coords[1], coords[2]);
 
 
-                    if (LasMethods.ContainsRGB(format))
+                    if (LasMethods.ContainsRGB(_format))
                     {
                         ushort[] rgb = _laszip.point.rgb;
                         Color rgbColor = Utility.ConvertRGB(rgb);
@@ -107,10 +111,10 @@ namespace siteReader
 
         public void MovePointCloud()
         {
-            Transform cloudTransform = Transform.Translation(translationVect);
+            Transform cloudTransform = Transform.Translation(_translationVect);
             rhinoPtCloud.Transform(cloudTransform);
-            translationVect *= -1;
-            isTranslated = !isTranslated;
+            _translationVect *= -1;
+            _isTranslated = !_isTranslated;
         }
 
     }
