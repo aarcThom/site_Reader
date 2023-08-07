@@ -23,6 +23,7 @@ namespace siteReader
             _vlr = LasMethods.VlrDict(_laszip, _path);
             _header = LasMethods.HeaderDict(_laszip, _path);
             _translationVect = GetTranslation();
+            _userProvidedVect = Vector3d.Unset;
 
             _format = LasMethods.GetPointFormat(_laszip, _path);
         }
@@ -36,11 +37,13 @@ namespace siteReader
 
         private bool _isTranslated = false;
         private Vector3d _translationVect;
+        private Vector3d _userProvidedVect;
 
         private byte _format;
 
         //properties
         public Vector3d translationVect => GetTranslation();
+        public Vector3d userProvidedVect => _userProvidedVect;
         public bool isTranslated => _isTranslated;
 
         public Dictionary<string, float> header => _header;
@@ -117,5 +120,11 @@ namespace siteReader
             _isTranslated = !_isTranslated;
         }
 
+        public void UserMoveCloud(Vector3d vector)
+        {
+            _userProvidedVect = vector;
+            Transform cloudTransform = Transform.Translation(vector);
+            rhinoPtCloud.Transform(cloudTransform);
+        }
     }
 }

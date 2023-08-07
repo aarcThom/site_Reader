@@ -31,11 +31,10 @@ namespace siteReader
         }
 
         //FIELDS
-
-
         private string _prevPath = String.Empty;
 
         private Vector3d _translationVector;
+        private Vector3d _userProvidedVector;
         private bool _userTranslateCloud;
 
         private LasPtCloud _fullPtCloud;
@@ -46,10 +45,6 @@ namespace siteReader
         //view attributes
         private float _cloudDensity = 0f;
         private bool _previewCloud = false;
-
-
-
-
 
 
         /// <summary>
@@ -89,10 +84,10 @@ namespace siteReader
             //VARIABLES---------------------------------------
             // Input variables
             string currentPath = String.Empty;
-            Vector3d translateIn = Vector3d.Unset;
 
             DA.GetData(1, ref _userTranslateCloud);
-            DA.GetData(2, ref translateIn);
+            DA.GetData(2, ref _userProvidedVector);
+
 
             //TEST INPUTS-------------------------------------
             // Is input empty?
@@ -126,18 +121,17 @@ namespace siteReader
                 _prevPath = currentPath;
 
                 if (_previewCloud) GetCloud(overRide: true);
-
             }
 
             //user updates density
             GetCloud();
 
             //move if needed
-            if (_fullPtCloud != null && _fullPtCloud.isTranslated != _userTranslateCloud)
-            {
-                _fullPtCloud.MovePointCloud();
-                Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
-            }
+            MoveCloud();
+
+            //move by user provided vector if needed
+            UserMoveCloud();
+
 
             DA.SetDataList(0, _headerOut);
             DA.SetDataList(1, _vlrOut);
@@ -215,15 +209,41 @@ namespace siteReader
         //OTHER METHODS ------------------------------------------------------------
         private void GetCloud(bool overRide = false)
         {
+            // I added the override bool to initialize the pointcloud regardless of preview status when a new file is referenced
             if ((_fullPtCloud != null && _fullPtCloud.maxDisplayDensity != _cloudDensity && _previewCloud) || overRide)
                 {
                 _fullPtCloud.maxDisplayDensity = _cloudDensity;
                 _fullPtCloud.GetPointCloud();
                 Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
             }
+            if (_userTranslateCloud) MoveCloud(overRide: true);
         }
 
-       
+        private void MoveCloud(bool overRide = false)
+        {
+            if (((_fullPtCloud.rhinoPtCloud != null && _fullPtCloud.isTranslated != _userTranslateCloud) || overRide) 
+                && _userProvidedVector != Vector3d.Unset)
+            {
+                _fullPtCloud.MovePointCloud();
+                Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
+            }
+            
+        }
 
+        private void UserMoveCloud()
+        {
+            if (_userProvidedVector != _fullPtCloud.userProvidedVect)
+            {
+                if (_userProvidedVector != Vector3d.Unset)
+                {
+                    _fullPtCloud.UserMoveCloud(_userProvidedVector);
+                }
+                else
+                {
+                    _fullPtCloud.UserMoveCloud(_fullPtCloud.userProvidedVect * -1);
+                }
+                
+            }
+        }
     }
 }
