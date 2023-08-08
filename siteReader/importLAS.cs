@@ -33,10 +33,6 @@ namespace siteReader
         //FIELDS
         private string _prevPath = String.Empty;
 
-        private Vector3d _translationVector;
-        private Vector3d _userProvidedVector;
-        private bool _userTranslateCloud;
-
         private LasPtCloud _fullPtCloud;
         private List<string> _headerOut;
         private List<string> _vlrOut;
@@ -85,9 +81,6 @@ namespace siteReader
             // Input variables
             string currentPath = String.Empty;
 
-            DA.GetData(1, ref _userTranslateCloud);
-            DA.GetData(2, ref _userProvidedVector);
-
 
             //TEST INPUTS-------------------------------------
             // Is input empty?
@@ -116,7 +109,6 @@ namespace siteReader
 
                 _headerOut = Utility.FloatDictGhOut(_fullPtCloud.header, this);
                 _vlrOut = Utility.StringDictGhOut(_fullPtCloud.vlr);
-                _translationVector = _fullPtCloud.translationVect;
 
                 _prevPath = currentPath;
 
@@ -125,9 +117,6 @@ namespace siteReader
 
             //user updates density
             GetCloud();
-
-            //move if needed
-            MoveCloud();
 
             //move by user provided vector if needed
 
@@ -215,23 +204,6 @@ namespace siteReader
                 _fullPtCloud.GetPointCloud();
                 Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
             }
-            if (_userTranslateCloud) MoveCloud(overRide: true);
-        }
-
-        private void MoveCloud(bool overRide = false)
-        {
-            if ((_fullPtCloud.rhinoPtCloud != null && _fullPtCloud.isTranslated != _userTranslateCloud) || overRide)
-            {
-                _fullPtCloud.MovePointCloud();
-                Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
-            }
-
-            if ( _userProvidedVector != _fullPtCloud.userProvidedVect || overRide)
-            {
-                _fullPtCloud.userProvidedVect = _userProvidedVector;
-                Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
-            }
-            
         }
     }
 }

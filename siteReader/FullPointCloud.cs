@@ -22,7 +22,6 @@ namespace siteReader
 
             _vlr = LasMethods.VlrDict(_laszip, _path);
             _header = LasMethods.HeaderDict(_laszip, _path);
-            _translationVect = GetTranslation();
 
             _format = LasMethods.GetPointFormat(_laszip, _path);
         }
@@ -34,20 +33,9 @@ namespace siteReader
         private readonly Dictionary<string, string> _vlr;
         private readonly Dictionary<string, float> _header;
 
-        private bool _isTranslated = false;
-        private Vector3d _translationVect;
-        private Vector3d _userProvidedVect = Vector3d.Zero;
-
         private byte _format;
 
         //properties
-        public Vector3d translationVect => GetTranslation();
-        public Vector3d userProvidedVect 
-        {
-            get { return _userProvidedVect; }
-            set { _userProvidedVect = SetUserMove(value); }
-        }
-        public bool isTranslated => _isTranslated;
 
         public Dictionary<string, float> header => _header;
         public Dictionary<string, string> vlr => _vlr;
@@ -113,35 +101,6 @@ namespace siteReader
                 if (ptIndex == 10) ptIndex = 0;
             }
             _laszip.close_reader();
-        }
-
-        public void MovePointCloud()
-        {
-            Transform cloudTransform = Transform.Translation(_translationVect);
-            rhinoPtCloud.Transform(cloudTransform);
-            _translationVect *= -1;
-            _isTranslated = !_isTranslated;
-        }
-
-        private Vector3d SetUserMove(Vector3d vectIn)
-        {
-            if (rhinoPtCloud != null)
-            {
-
-                if (vectIn != _userProvidedVect)
-                {
-                    //move the cloud back to its original position
-                    Transform cloudTransform = Transform.Translation(_userProvidedVect * -1);
-                    rhinoPtCloud.Transform(cloudTransform);
-                }
-
-                Transform cloudTransform2 = Transform.Translation(vectIn);
-                rhinoPtCloud.Transform(cloudTransform2);
-                return vectIn;
-            }
-
-            return _userProvidedVect;
-
         }
 
 
