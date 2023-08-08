@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using Aardvark.Base;
 using Rhino.Render;
+using Rhino;
 
 namespace siteReader
 {
@@ -33,10 +34,10 @@ namespace siteReader
         //FIELDS
         private string _prevPath = String.Empty;
 
+
         private LasPtCloud _fullPtCloud;
         private List<string> _headerOut;
         private List<string> _vlrOut;
-        private List<string> test = new List<string>();
 
         //view attributes
         private float _cloudDensity = 0f;
@@ -49,12 +50,6 @@ namespace siteReader
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("file path", "path", "Path to LAS or LAZ file.", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("move to origin?", "translate",
-                "translate the point cloud so that its minimum X,Y,Z values land at the origin", GH_ParamAccess.item, false);
-            pManager[1].Optional = true;
-            pManager.AddVectorParameter("Translation Vector", "Translation",
-                "Optional translation vector used to keep your data aligned", GH_ParamAccess.item, Vector3d.Zero);
-            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -65,8 +60,6 @@ namespace siteReader
             pManager.AddTextParameter("Header", "header", "Header information.", GH_ParamAccess.list);
             pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
                 GH_ParamAccess.list);
-            pManager.AddVectorParameter("Translation Vector", "Translation", "The vector used to translate the pt cloud to origin", GH_ParamAccess.item);
-            pManager.AddTextParameter("test", "t", "test", GH_ParamAccess.list);
 
         }
 
@@ -118,14 +111,9 @@ namespace siteReader
             //user updates density
             GetCloud();
 
-            //move by user provided vector if needed
-
 
             DA.SetDataList(0, _headerOut);
             DA.SetDataList(1, _vlrOut);
-            DA.SetData(2, _translationVector);
-
-
         }
 
         /// <summary>
@@ -157,10 +145,20 @@ namespace siteReader
             _previewCloud = preview;
         }
 
+        public void ZoomCloud()
+        {
+            if (_previewCloud && _fullPtCloud.rhinoPtCloud != null)
+            {
+                var bBox = _fullPtCloud.rhinoPtCloud.GetBoundingBox(true);
+                RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.ZoomBoundingBox(bBox);
+                RhinoDoc.ActiveDoc.Views.ActiveView.Redraw();
+            }
+        }
+
         //This region overrides the typical component layout
         public override void CreateAttributes()
         {
-            m_attributes = new SiteReader.UI.BaseAttributes(this, SetVal, SetPreview);
+            m_attributes = new SiteReader.UI.BaseAttributes(this, SetVal, SetPreview, ZoomCloud);
         }
 
 
@@ -202,7 +200,7 @@ namespace siteReader
                 {
                 _fullPtCloud.maxDisplayDensity = _cloudDensity;
                 _fullPtCloud.GetPointCloud();
-                Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
+                RhinoDoc.ActiveDoc.Views.Redraw();
             }
         }
     }
