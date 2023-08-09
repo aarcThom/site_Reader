@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace siteReader
+namespace siteReader.Methods
 {
     public static class Utility
     {
@@ -39,7 +39,7 @@ namespace siteReader
 
             if (stringDict.Count == 0)
             {
-                return new List<string>{"No VLRs found."};
+                return new List<string> { "No VLRs found." };
             }
 
 
@@ -58,7 +58,7 @@ namespace siteReader
 
             if (floatDict.Count == 0)
             {
-                owner.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, 
+                owner.AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
                     "LAS header not found. The LAS spec. needs a header. " +
                     "Double check your data source as this will probably cause errors down the road.");
                 return ghOut;

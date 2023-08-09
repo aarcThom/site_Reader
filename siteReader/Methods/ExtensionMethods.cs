@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace siteReader
+namespace siteReader.Methods
 {
     public static class ExtensionMethods
     {
@@ -17,7 +17,7 @@ namespace siteReader
         /// <param name="dVal"></param>
         public static void AddDup(this Dictionary<string, string> baseDictionary, string dKey, string dVal)
         {
-            if (baseDictionary.ContainsKey(dKey)) 
+            if (baseDictionary.ContainsKey(dKey))
             {
                 // get the count of dKey substring
                 int subStringCount = baseDictionary.Keys.Count(kys => kys.Contains(dKey));
@@ -30,7 +30,7 @@ namespace siteReader
             {
                 baseDictionary.Add(dKey, dVal);
             }
-          
+
         }
     }
 }

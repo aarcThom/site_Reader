@@ -1,21 +1,14 @@
-using Grasshopper;
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Newtonsoft.Json.Linq;
-using System.Text.RegularExpressions;
-using System.Text;
-using System.Threading;
-using Aardvark.Base;
-using Rhino.Render;
 using Rhino;
+using siteReader.Params;
+using Rhino.Geometry;
 using Rhino.DocObjects;
-using Grasshopper.Kernel.Types;
+using siteReader.Methods;
 
-namespace siteReader
+namespace siteReader.Components
 {
     public class importLAS : GH_Component
     {
@@ -34,10 +27,10 @@ namespace siteReader
         }
 
         //FIELDS
-        private string _prevPath = String.Empty;
+        private string _prevPath = string.Empty;
 
 
-        private LasPtCloud _fullPtCloud;
+        private AsprCld _fullPtCloud;
         private List<string> _headerOut;
         private List<string> _vlrOut;
 
@@ -49,7 +42,7 @@ namespace siteReader
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("file path", "path", "Path to LAS or LAZ file.", GH_ParamAccess.item);
         }
@@ -57,7 +50,7 @@ namespace siteReader
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddTextParameter("Header", "header", "Header information.", GH_ParamAccess.list);
             pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
@@ -74,7 +67,7 @@ namespace siteReader
         {
             //VARIABLES---------------------------------------
             // Input variables
-            string currentPath = String.Empty;
+            string currentPath = string.Empty;
 
 
             //TEST INPUTS-------------------------------------
@@ -84,14 +77,14 @@ namespace siteReader
             // Test if file exists
             if (!File.Exists(currentPath))
             {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Cannot find file");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Cannot find file");
                 return;
             }
 
             //is .las or .laz?
             if (!Utility.TestLasExt(currentPath))
             {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You must provide a valid .las or .laz file.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You must provide a valid .las or .laz file.");
                 return;
             }
 
@@ -99,8 +92,8 @@ namespace siteReader
             //initial import
             if (_prevPath != currentPath)
             {
-                _fullPtCloud = new LasPtCloud(currentPath);
-                _fullPtCloud.maxDisplayDensity = _cloudDensity;
+                _fullPtCloud = new AsprCld(currentPath);
+                _fullPtCloud.displayDensity = _cloudDensity;
 
                 _headerOut = Utility.FloatDictGhOut(_fullPtCloud.header, this);
                 _vlrOut = Utility.StringDictGhOut(_fullPtCloud.vlr);
@@ -149,9 +142,9 @@ namespace siteReader
 
         public void ZoomCloud()
         {
-            if (_previewCloud && _fullPtCloud.rhinoPtCloud != null)
+            if (_previewCloud && _fullPtCloud.ptCloud != null)
             {
-                var bBox = _fullPtCloud.rhinoPtCloud.GetBoundingBox(true);
+                var bBox = _fullPtCloud.ptCloud.GetBoundingBox(true);
                 RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.ZoomBoundingBox(bBox);
                 RhinoDoc.ActiveDoc.Views.ActiveView.Redraw();
             }
@@ -168,9 +161,9 @@ namespace siteReader
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_fullPtCloud.rhinoPtCloud != null && _previewCloud)
+            if (_fullPtCloud.ptCloud != null && _previewCloud)
             {
-                args.Display.DrawPointCloud(_fullPtCloud.rhinoPtCloud, 2);
+                args.Display.DrawPointCloud(_fullPtCloud.ptCloud, 2);
             }
 
         }
@@ -180,9 +173,9 @@ namespace siteReader
         {
             get
             {
-                if (_fullPtCloud != null && _fullPtCloud.rhinoPtCloud != null && _previewCloud)
+                if (_fullPtCloud != null && _fullPtCloud.ptCloud != null && _previewCloud)
                 {
-                    return _fullPtCloud.rhinoPtCloud.GetBoundingBox(true);
+                    return _fullPtCloud.ptCloud.GetBoundingBox(true);
                 }
 
                 return base.ClippingBox;
@@ -199,18 +192,17 @@ namespace siteReader
         {
             get
             {
-                return _fullPtCloud.rhinoPtCloud != null && _previewCloud;
+                return _fullPtCloud.ptCloud != null && _previewCloud;
             }
         }
 
         public override void BakeGeometry(RhinoDoc doc, ObjectAttributes att, List<Guid> obj_ids)
         {
-            if(IsBakeCapable)
+            if (IsBakeCapable)
             {
-                doc.Objects.AddPointCloud(_fullPtCloud.rhinoPtCloud);
+                doc.Objects.AddPointCloud(_fullPtCloud.ptCloud);
             }
         }
-
 
 
 
@@ -218,9 +210,9 @@ namespace siteReader
         private void GetCloud(bool overRide = false)
         {
             // I added the override bool to initialize the pointcloud regardless of preview status when a new file is referenced
-            if ((_fullPtCloud != null && _fullPtCloud.maxDisplayDensity != _cloudDensity && _previewCloud) || overRide)
-                {
-                _fullPtCloud.maxDisplayDensity = _cloudDensity;
+            if (_fullPtCloud != null && _fullPtCloud.displayDensity != _cloudDensity && _previewCloud || overRide)
+            {
+                _fullPtCloud.displayDensity = _cloudDensity;
                 _fullPtCloud.GetPointCloud();
                 RhinoDoc.ActiveDoc.Views.Redraw();
             }

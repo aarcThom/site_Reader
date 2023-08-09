@@ -1,13 +1,15 @@
 ﻿using Aardvark.Base;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using siteReader.Params;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
 
-namespace siteReader
+namespace siteReader.Methods
 {
     public static class LasMethods
     {
@@ -48,7 +50,6 @@ namespace siteReader
                         }
                         frags.Sort();
 
-                        int count = 1;
                         foreach (var f in frags)
                         {
                             f.Replace(',', ' ');
@@ -63,7 +64,12 @@ namespace siteReader
 
         }
 
-
+        /// <summary>
+        /// Retrieves pertinent information from the .las file's header
+        /// </summary>
+        /// <param name="ptCloud"></param>
+        /// <param name="curPath"></param>
+        /// <returns></returns>
         public static Dictionary<string, float> HeaderDict(LASzip.Net.laszip ptCloud, string curPath)
         {
             Dictionary<string, float> headerDict = new Dictionary<string, float>();
@@ -86,13 +92,17 @@ namespace siteReader
             ptCloud.close_reader();
             return headerDict;
         }
-
+        /// <summary>
+        /// Given a point density between 0.1 and 1, return a pattern of indices used to pick points from a .las cloud
+        /// </summary>
+        /// <param name="density"></param>
+        /// <returns></returns>
         public static List<int> GetPointIndices(float density)
         {
             List<int> indices = new List<int>();
 
             switch (density)
-            {   
+            {
                 case 0.1f:
                     indices = new List<int>() { 5 };
                     break;
@@ -100,7 +110,7 @@ namespace siteReader
                     indices = new List<int>() { 3, 7 };
                     break;
                 case 0.3f:
-                    indices = new List<int>() { 2, 6, 8};
+                    indices = new List<int>() { 2, 6, 8 };
                     break;
                 case 0.4f:
                     indices = new List<int>() { 0, 3, 6, 9 };
@@ -112,7 +122,7 @@ namespace siteReader
                     indices = new List<int>() { 0, 2, 3, 5, 6, 8 };
                     break;
                 case 0.7f:
-                    indices = new List<int>() { 0, 1, 3, 4, 6, 7, 8};
+                    indices = new List<int>() { 0, 1, 3, 4, 6, 7, 8 };
                     break;
                 case 0.8f:
                     indices = new List<int>() { 0, 1, 3, 4, 5, 6, 8, 9 };
@@ -128,7 +138,12 @@ namespace siteReader
 
             return indices;
         }
-
+        /// <summary>
+        /// Get the .las cloud point format that determines what fields are available for the cloud
+        /// </summary>
+        /// <param name="ptCloud"></param>
+        /// <param name="curPath"></param>
+        /// <returns></returns>
         public static byte GetPointFormat(LASzip.Net.laszip ptCloud, string curPath)
         {
             byte format = 0;
@@ -143,15 +158,69 @@ namespace siteReader
             return format;
         }
 
+        /// <summary>
+        /// Tests if a given .las pointFormat contains an RGB field
+        /// </summary>
+        /// <param name="format"></param>
+        /// <returns></returns>
         public static bool ContainsRGB(byte format)
         {
-            byte[] RGBformats = new byte[] {2, 3, 5, 7, 8, 10};
+            byte[] RGBformats = new byte[] { 2, 3, 5, 7, 8, 10 };
 
             if (RGBformats.Contains(format))
             {
                 return true;
             }
             return false;
+        }
+
+        public static PointCloud GetCoordinates(AsprCld cld)
+        {
+            var lz = cld.laszip;
+            var path = cld.path;
+            var header = cld.header;
+            var density = cld.displayDensity;
+            var format = cld.pointFormat;
+
+
+            var ptCloud = new PointCloud();
+            bool isCompressed;
+            lz.open_reader(path, out isCompressed);
+
+            int pointCount = header["Number of Points"].ToInt();
+            List<int> ptIndices = GetPointIndices(density);
+
+            int ptIndex = 0;
+
+            for (int i = 0; i < pointCount; i++)
+            {
+                lz.read_point();
+
+                if (ptIndices.Contains(ptIndex))
+                {
+                    double[] coords = new double[3];
+                    lz.get_coordinates(coords);
+                    var rPoint = new Point3d(coords[0], coords[1], coords[2]);
+
+
+                    if (ContainsRGB(format))
+                    {
+                        ushort[] rgb = lz.point.rgb;
+                        Color rgbColor = Utility.ConvertRGB(rgb);
+                        ptCloud.Add(rPoint, rgbColor);
+                    }
+                    else
+                    {
+                        ptCloud.Add(rPoint);
+                    }
+                }
+
+                ptIndex++;
+                if (ptIndex == 10) ptIndex = 0;
+            }
+            lz.close_reader();
+
+            return ptCloud;
         }
     }
 }
