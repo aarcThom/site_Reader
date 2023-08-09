@@ -29,7 +29,7 @@ namespace siteReader.Methods
         }
 
         /// <summary>
-        /// formats dictionary for GH textual output
+        /// formats VLR dictionary for GH textual output
         /// </summary>
         /// <param name="stringDict"></param>
         /// <returns>list<string> for GH output</returns>
@@ -51,7 +51,12 @@ namespace siteReader.Methods
             return ghOut;
         }
 
-
+        /// <summary>
+        /// Formats header dictionary for GH Textural output
+        /// </summary>
+        /// <param name="floatDict"></param>
+        /// <param name="owner"></param>
+        /// <returns></returns>
         public static List<string> FloatDictGhOut(Dictionary<string, float> floatDict, GH_Component owner)
         {
             List<string> ghOut = new List<string>();

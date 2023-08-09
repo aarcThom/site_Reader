@@ -24,10 +24,9 @@ namespace siteReader.Params
             _path = path;
             _laszip = new LASzip.Net.laszip();
 
-            _vlr = LasMethods.VlrDict(_laszip, _path);
-            _header = LasMethods.HeaderDict(_laszip, _path);
-
-            _format = LasMethods.GetPointFormat(_laszip, _path);
+            _vlr = LasMethods.VlrDict(this);
+            _header = LasMethods.HeaderDict(this);
+            _format = LasMethods.GetPointFormat(this);
 
             _ptCloud = new PointCloud();
 
@@ -60,7 +59,18 @@ namespace siteReader.Params
             this.m_value = transformedCloud;
         }
 
+        public AsprCld(PointCloud ptCld)
+        {
+            _path = "Rhino referenced cloud";
+            _laszip = null;
+            _vlr = null;
+            _header= null;
+            _format = 77; //reserve this format # for user ref'd clouds
+
+        }
+
         //fields
+        private bool _userRefCld = false; //maybe delete this it might cause issues down the road to have user ref'd clouds without ASPR data
         private readonly string _path;
         private readonly Dictionary<string, float> _header;
         private readonly Dictionary<string, string> _vlr;
@@ -72,11 +82,14 @@ namespace siteReader.Params
 
         //PROPERTIES---------------------------------------------------------
 
-        //.las properties
+        //ASPR / .las properties
+
+        public bool userRefCld => _userRefCld; // is the cloud a point cloud referenced from Rhino?
         public string path => _path;
         public Dictionary<string, float> header => _header;
         public Dictionary<string, string> vlr => _vlr;
         public byte pointFormat => _format;
+        
         
         
         //laszip
@@ -147,7 +160,7 @@ namespace siteReader.Params
 
         public override BoundingBox Boundingbox => this.m_value.GetBoundingBox(true);
 
-        public override string TypeDescription => "A rhino point cloud linked with ASPR info";
+        public override string TypeDescription => "A point cloud linked with ASPR info";
 
         public override IGH_GeometricGoo DuplicateGeometry()
         {

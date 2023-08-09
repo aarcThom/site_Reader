@@ -30,7 +30,7 @@ namespace siteReader.Components
         private string _prevPath = string.Empty;
 
 
-        private AsprCld _fullPtCloud;
+        private AsprCld _asprCld;
         private List<string> _headerOut;
         private List<string> _vlrOut;
 
@@ -92,15 +92,22 @@ namespace siteReader.Components
             //initial import
             if (_prevPath != currentPath)
             {
-                _fullPtCloud = new AsprCld(currentPath);
-                _fullPtCloud.displayDensity = _cloudDensity;
+                _asprCld = new AsprCld(currentPath);
+                _asprCld.displayDensity = _cloudDensity;
 
-                _headerOut = Utility.FloatDictGhOut(_fullPtCloud.header, this);
-                _vlrOut = Utility.StringDictGhOut(_fullPtCloud.vlr);
+                _headerOut = Utility.FloatDictGhOut(_asprCld.header, this);
+                _vlrOut = Utility.StringDictGhOut(_asprCld.vlr);
 
                 _prevPath = currentPath;
 
-                if (_previewCloud) GetCloud(overRide: true);
+                if (_previewCloud) 
+                { 
+                    GetCloud(overRide: true); 
+                } 
+                else
+                {
+                    _asprCld.displayDensity = 2; // setting the cloud density above 1 so that the getCloud method triggers on user button click
+                }
             }
 
             //user updates density
@@ -142,9 +149,9 @@ namespace siteReader.Components
 
         public void ZoomCloud()
         {
-            if (_previewCloud && _fullPtCloud.ptCloud != null)
+            if (_previewCloud && _asprCld.ptCloud != null)
             {
-                var bBox = _fullPtCloud.ptCloud.GetBoundingBox(true);
+                var bBox = _asprCld.ptCloud.GetBoundingBox(true);
                 RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.ZoomBoundingBox(bBox);
                 RhinoDoc.ActiveDoc.Views.ActiveView.Redraw();
             }
@@ -161,9 +168,9 @@ namespace siteReader.Components
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_fullPtCloud.ptCloud != null && _previewCloud)
+            if (_asprCld.ptCloud != null && _previewCloud)
             {
-                args.Display.DrawPointCloud(_fullPtCloud.ptCloud, 2);
+                args.Display.DrawPointCloud(_asprCld.ptCloud, 2);
             }
 
         }
@@ -173,9 +180,9 @@ namespace siteReader.Components
         {
             get
             {
-                if (_fullPtCloud != null && _fullPtCloud.ptCloud != null && _previewCloud)
+                if (_asprCld != null && _asprCld.ptCloud != null && _previewCloud)
                 {
-                    return _fullPtCloud.ptCloud.GetBoundingBox(true);
+                    return _asprCld.ptCloud.GetBoundingBox(true);
                 }
 
                 return base.ClippingBox;
@@ -192,7 +199,7 @@ namespace siteReader.Components
         {
             get
             {
-                return _fullPtCloud.ptCloud != null && _previewCloud;
+                return _asprCld.ptCloud != null && _previewCloud;
             }
         }
 
@@ -200,7 +207,7 @@ namespace siteReader.Components
         {
             if (IsBakeCapable)
             {
-                doc.Objects.AddPointCloud(_fullPtCloud.ptCloud);
+                doc.Objects.AddPointCloud(_asprCld.ptCloud);
             }
         }
 
@@ -210,10 +217,10 @@ namespace siteReader.Components
         private void GetCloud(bool overRide = false)
         {
             // I added the override bool to initialize the pointcloud regardless of preview status when a new file is referenced
-            if (_fullPtCloud != null && _fullPtCloud.displayDensity != _cloudDensity && _previewCloud || overRide)
+            if (_asprCld != null && _asprCld.displayDensity != _cloudDensity && _previewCloud || overRide)
             {
-                _fullPtCloud.displayDensity = _cloudDensity;
-                _fullPtCloud.GetPointCloud();
+                _asprCld.displayDensity = _cloudDensity;
+                _asprCld.GetPointCloud();
                 RhinoDoc.ActiveDoc.Views.Redraw();
             }
         }

@@ -19,16 +19,20 @@ namespace siteReader.Methods
         /// </summary>
         /// <param name="vlr">the list of vlrs read by laszip</param>
         /// <returns>vlr key/value pairs</returns>
-        public static Dictionary<string, string> VlrDict(LASzip.Net.laszip ptCloud, string curPath)
+        public static Dictionary<string, string> VlrDict(AsprCld cld)
         {
+            var lz = cld.laszip;
+            var path = cld.path;
+
+
             Dictionary<string, string> vlrDict = new Dictionary<string, string>();
             bool isCompressed;
 
-            ptCloud.open_reader(curPath, out isCompressed);
+            lz.open_reader(path, out isCompressed);
 
-            if (ptCloud.header.vlrs.Count > 0)
+            if (lz.header.vlrs.Count > 0)
             {
-                var vlr = ptCloud.header.vlrs;
+                var vlr = lz.header.vlrs;
 
                 foreach (var v in vlr)
                 {
@@ -59,7 +63,7 @@ namespace siteReader.Methods
                     }
                 }
             }
-            ptCloud.close_reader();
+            lz.close_reader();
             return vlrDict;
 
         }
@@ -70,26 +74,30 @@ namespace siteReader.Methods
         /// <param name="ptCloud"></param>
         /// <param name="curPath"></param>
         /// <returns></returns>
-        public static Dictionary<string, float> HeaderDict(LASzip.Net.laszip ptCloud, string curPath)
+        public static Dictionary<string, float> HeaderDict(AsprCld cld)
         {
+            var lz = cld.laszip;
+            var path = cld.path;
+
+
             Dictionary<string, float> headerDict = new Dictionary<string, float>();
             bool isCompressed;
 
-            ptCloud.open_reader(curPath, out isCompressed);
+            lz.open_reader(path, out isCompressed);
 
             long ptCount;
-            ptCloud.get_number_of_point(out ptCount);
+            lz.get_number_of_point(out ptCount);
             headerDict.Add("Number of Points", ptCount);
 
 
-            headerDict.Add("Min X", ptCloud.header.min_x.DoubleToFloat());
-            headerDict.Add("Min Y", ptCloud.header.min_y.DoubleToFloat());
-            headerDict.Add("Min Z", ptCloud.header.min_z.DoubleToFloat());
-            headerDict.Add("Max X", ptCloud.header.max_x.DoubleToFloat());
-            headerDict.Add("Max Y", ptCloud.header.max_y.DoubleToFloat());
-            headerDict.Add("Max Z", ptCloud.header.max_z.DoubleToFloat());
+            headerDict.Add("Min X", lz.header.min_x.DoubleToFloat());
+            headerDict.Add("Min Y", lz.header.min_y.DoubleToFloat());
+            headerDict.Add("Min Z", lz.header.min_z.DoubleToFloat());
+            headerDict.Add("Max X", lz.header.max_x.DoubleToFloat());
+            headerDict.Add("Max Y", lz.header.max_y.DoubleToFloat());
+            headerDict.Add("Max Z", lz.header.max_z.DoubleToFloat());
 
-            ptCloud.close_reader();
+            lz.close_reader();
             return headerDict;
         }
         /// <summary>
@@ -144,16 +152,19 @@ namespace siteReader.Methods
         /// <param name="ptCloud"></param>
         /// <param name="curPath"></param>
         /// <returns></returns>
-        public static byte GetPointFormat(LASzip.Net.laszip ptCloud, string curPath)
+        public static byte GetPointFormat(AsprCld cld)
         {
+            var lz = cld.laszip;
+            var path = cld.path;
+
             byte format = 0;
 
             bool isCompressed;
-            ptCloud.open_reader(curPath, out isCompressed);
+            lz.open_reader(path, out isCompressed);
 
-            format = ptCloud.header.point_data_format;
+            format = lz.header.point_data_format;
 
-            ptCloud.close_reader();
+            lz.close_reader();
 
             return format;
         }
