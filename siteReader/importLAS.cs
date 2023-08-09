@@ -12,6 +12,8 @@ using System.Threading;
 using Aardvark.Base;
 using Rhino.Render;
 using Rhino;
+using Rhino.DocObjects;
+using Grasshopper.Kernel.Types;
 
 namespace siteReader
 {
@@ -190,6 +192,26 @@ namespace siteReader
 
         //need to override this to be previewable despite having no geo output
         public override bool IsPreviewCapable => true;
+
+
+        //BAKE METHODS
+        public override bool IsBakeCapable
+        {
+            get
+            {
+                return _fullPtCloud.rhinoPtCloud != null && _previewCloud;
+            }
+        }
+
+        public override void BakeGeometry(RhinoDoc doc, ObjectAttributes att, List<Guid> obj_ids)
+        {
+            if(IsBakeCapable)
+            {
+                doc.Objects.AddPointCloud(_fullPtCloud.rhinoPtCloud);
+            }
+        }
+
+
 
 
         //OTHER METHODS ------------------------------------------------------------
