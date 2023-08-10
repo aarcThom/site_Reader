@@ -55,6 +55,7 @@ namespace siteReader.Components
             pManager.AddTextParameter("Header", "header", "Header information.", GH_ParamAccess.list);
             pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
                 GH_ParamAccess.list);
+            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
 
         }
 
@@ -102,7 +103,7 @@ namespace siteReader.Components
 
                 if (_previewCloud) 
                 { 
-                    GetCloud(overRide: true); 
+                    GetCloud(DA, overRide: true); 
                 } 
                 else
                 {
@@ -111,11 +112,12 @@ namespace siteReader.Components
             }
 
             //user updates density
-            GetCloud();
+            GetCloud(DA);
 
 
             DA.SetDataList(0, _headerOut);
             DA.SetDataList(1, _vlrOut);
+            
         }
 
         /// <summary>
@@ -164,7 +166,7 @@ namespace siteReader.Components
         }
 
 
-
+        /*
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
@@ -210,17 +212,19 @@ namespace siteReader.Components
                 doc.Objects.AddPointCloud(_asprCld.ptCloud);
             }
         }
+        */
 
 
 
         //OTHER METHODS ------------------------------------------------------------
-        private void GetCloud(bool overRide = false)
+        private void GetCloud(IGH_DataAccess da, bool overRide = false)
         {
             // I added the override bool to initialize the pointcloud regardless of preview status when a new file is referenced
             if (_asprCld != null && _asprCld.displayDensity != _cloudDensity && _previewCloud || overRide)
             {
                 _asprCld.displayDensity = _cloudDensity;
                 _asprCld.GetPointCloud();
+                da.SetData(2, new AsprCld(_asprCld));
                 RhinoDoc.ActiveDoc.Views.Redraw();
             }
         }

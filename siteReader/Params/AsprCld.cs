@@ -29,7 +29,6 @@ namespace siteReader.Params
             _format = LasMethods.GetPointFormat(this);
 
             _ptCloud = new PointCloud();
-
             this.m_value = _ptCloud; // the geometry for the grasshopper geometricGoo
         }
 
@@ -43,7 +42,7 @@ namespace siteReader.Params
             _format = cld.pointFormat;
 
             _ptCloud = cld.ptCloud;
-            this.m_value = cld.ptCloud;
+            this.m_value = _ptCloud;
         }
 
         public AsprCld(PointCloud transformedCloud, AsprCld cld)
@@ -56,17 +55,25 @@ namespace siteReader.Params
             _format = cld.pointFormat;
 
             _ptCloud = transformedCloud;
-            this.m_value = transformedCloud;
+            this.m_value = _ptCloud;
         }
 
         public AsprCld(PointCloud ptCld)
         {
-            _path = "Rhino referenced cloud";
-            _laszip = null;
-            _vlr = null;
-            _header= null;
+            _userRefCld = true;
             _format = 77; //reserve this format # for user ref'd clouds
 
+            _ptCloud = ptCld;
+            this.m_value = _ptCloud;
+        }
+
+        public AsprCld()
+        {
+            _userRefCld = true;
+            _format = 77; //reserve this format # for user ref'd clouds
+
+            _ptCloud = new PointCloud();
+            this.m_value = _ptCloud;
         }
 
         //fields
