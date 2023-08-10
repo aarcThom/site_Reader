@@ -166,56 +166,6 @@ namespace siteReader.Components
         }
 
 
-        /*
-        //drawing the point cloud if preview is enabled
-        public override void DrawViewportWires(IGH_PreviewArgs args)
-        {
-            if (_asprCld.ptCloud != null && _previewCloud)
-            {
-                args.Display.DrawPointCloud(_asprCld.ptCloud, 2);
-            }
-
-        }
-
-        //Return a BoundingBox that contains all the geometry you are about to draw.
-        public override BoundingBox ClippingBox
-        {
-            get
-            {
-                if (_asprCld != null && _asprCld.ptCloud != null && _previewCloud)
-                {
-                    return _asprCld.ptCloud.GetBoundingBox(true);
-                }
-
-                return base.ClippingBox;
-
-            }
-        }
-
-        //need to override this to be previewable despite having no geo output
-        public override bool IsPreviewCapable => true;
-
-
-        //BAKE METHODS
-        public override bool IsBakeCapable
-        {
-            get
-            {
-                return _asprCld.ptCloud != null && _previewCloud;
-            }
-        }
-
-        public override void BakeGeometry(RhinoDoc doc, ObjectAttributes att, List<Guid> obj_ids)
-        {
-            if (IsBakeCapable)
-            {
-                doc.Objects.AddPointCloud(_asprCld.ptCloud);
-            }
-        }
-        */
-
-
-
         //OTHER METHODS ------------------------------------------------------------
         private void GetCloud(IGH_DataAccess da, bool overRide = false)
         {
