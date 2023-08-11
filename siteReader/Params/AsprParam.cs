@@ -15,7 +15,7 @@ namespace siteReader.Params
     {
 
         //constructor that inherits from the base geometry component class
-        public AsprParam() : base(new GH_InstanceDescription("ASPR Point Cloud", "Cloud", "A point cloud linked with ASPR info", "Params", "Geometry"))
+        public AsprParam() : base(new GH_InstanceDescription("ASPR Point Cloud", "Cloud", "A point cloud linked with ASPR info", "SiteReader", "Point Clouds"))
         {
         }
 

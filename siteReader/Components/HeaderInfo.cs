@@ -16,7 +16,7 @@ namespace siteReader.Components
         public HeaderInfo()
           : base("LAS header info", "header",
             "Return a .las cloud's header fields as individual parameters",
-            "AARC", "siteReader")
+            "SiteReader", "Point Clouds")
         {
         }
 

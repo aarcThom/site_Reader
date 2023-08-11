@@ -86,6 +86,7 @@ namespace siteReader.Params
         private LASzip.Net.laszip _laszip;
 
         private PointCloud _ptCloud;
+        private List<Int32> _ptIndices = new List<Int32>();
 
         //PROPERTIES---------------------------------------------------------
 
@@ -104,6 +105,7 @@ namespace siteReader.Params
 
         //geometry properties
         public PointCloud ptCloud => _ptCloud;
+        public List<Int32> ptIndices => _ptIndices;
 
         //grasshopper options
         public float displayDensity { get; set; }
@@ -188,7 +190,7 @@ namespace siteReader.Params
         //CLOUD METHODS
         public void GetPointCloud()
         {
-            _ptCloud = LasMethods.GetCoordinates(this);
+            _ptCloud = LasMethods.GetCoordinates(this, ref _ptIndices);
         }
 
     }

@@ -22,7 +22,7 @@ namespace siteReader.Components
         public importLAS()
           : base("import LAS", "impLAS",
             "Import a LAS file",
-            "AARC", "siteReader")
+            "SiteReader", "Point Clouds")
         {
         }
 
@@ -56,6 +56,7 @@ namespace siteReader.Components
             pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
                 GH_ParamAccess.list);
             pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("IX", "i", "yo", GH_ParamAccess.list);
 
         }
 
@@ -175,6 +176,7 @@ namespace siteReader.Components
                 _asprCld.displayDensity = _cloudDensity;
                 _asprCld.GetPointCloud();
                 da.SetData(2, new AsprCld(_asprCld));
+                da.SetDataList(3, _asprCld.ptIndices);
                 RhinoDoc.ActiveDoc.Views.Redraw();
             }
         }

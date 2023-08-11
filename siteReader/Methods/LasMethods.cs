@@ -106,7 +106,7 @@ namespace siteReader.Methods
         /// </summary>
         /// <param name="density"></param>
         /// <returns></returns>
-        public static List<int> GetPointIndices(float density)
+        public static List<int> GetMaskingPattern(float density)
         {
             List<int> indices = new List<int>();
 
@@ -186,7 +186,7 @@ namespace siteReader.Methods
             return false;
         }
 
-        public static PointCloud GetCoordinates(AsprCld cld)
+        public static PointCloud GetCoordinates(AsprCld cld, ref List<int> ptIxs)
         {
             var lz = cld.laszip;
             var path = cld.path;
@@ -200,16 +200,19 @@ namespace siteReader.Methods
             lz.open_reader(path, out isCompressed);
 
             int pointCount = header["Number of Points"].ToInt();
-            List<int> ptIndices = GetPointIndices(density);
+            List<int> densityMask = GetMaskingPattern(density);
+            int maskIx = 0;
 
-            int ptIndex = 0;
+            List<int> ptIndices = new List<int>();
 
             for (int i = 0; i < pointCount; i++)
             {
                 lz.read_point();
 
-                if (ptIndices.Contains(ptIndex))
+                if (densityMask.Contains(maskIx))
                 {
+                    ptIndices.Add(i);
+
                     double[] coords = new double[3];
                     lz.get_coordinates(coords);
                     var rPoint = new Point3d(coords[0], coords[1], coords[2]);
@@ -227,10 +230,12 @@ namespace siteReader.Methods
                     }
                 }
 
-                ptIndex++;
-                if (ptIndex == 10) ptIndex = 0;
+                maskIx++;
+                if (maskIx == 10) maskIx = 0;
             }
             lz.close_reader();
+
+            ptIxs = ptIndices;
 
             return ptCloud;
         }
