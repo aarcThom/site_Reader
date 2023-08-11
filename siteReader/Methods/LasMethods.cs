@@ -87,7 +87,7 @@ namespace siteReader.Methods
 
             long ptCount;
             lz.get_number_of_point(out ptCount);
-            headerDict.Add("Number of Points", ptCount);
+            headerDict.Add("Number of Points", (float)ptCount);
 
 
             headerDict.Add("Min X", lz.header.min_x.DoubleToFloat());
@@ -96,6 +96,7 @@ namespace siteReader.Methods
             headerDict.Add("Max X", lz.header.max_x.DoubleToFloat());
             headerDict.Add("Max Y", lz.header.max_y.DoubleToFloat());
             headerDict.Add("Max Z", lz.header.max_z.DoubleToFloat());
+            headerDict.Add("Point Format", (float)lz.header.point_data_format);
 
             lz.close_reader();
             return headerDict;

@@ -15,7 +15,7 @@ namespace siteReader.Components
         /// </summary>
         public HeaderInfo()
           : base("LAS header info", "header",
-            "Read a LAS file's header info",
+            "Return a .las cloud's header fields as individual parameters",
             "AARC", "siteReader")
         {
         }
@@ -33,7 +33,10 @@ namespace siteReader.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("Header", "header", "Header information.", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Point Count", "PtCnt", "The number of points in the .las file", GH_ParamAccess.item);
+            pManager.AddPointParameter("Minimum XYZ Point", "MinPt", "The minimum XYZ values in the cloud as a point3d", GH_ParamAccess.item);
+            pManager.AddPointParameter("Maximum XYZ Point", "MaxPt", "The maximum XYZ values in the cloud as a point3d", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Point Format", "PtFrmt", "The .las 1.4 point format. See standards for included fields", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -45,9 +48,31 @@ namespace siteReader.Components
             AsprCld cld = new AsprCld();
             if (!DA.GetData(0, ref cld)) return;
 
-            List<string> header = Utility.FloatDictGhOut(cld.header, this);
+            if (cld.header == null) 
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no header. Most likely a rhino referenced point cloud.");
+                return;
+            }
 
-            DA.SetDataList(0, header);
+            int ptCount = (int)cld.header["Number of Points"];
+
+            Point3d minPt = new Point3d();
+            minPt.X = cld.header["Min X"];
+            minPt.Y = cld.header["Min Y"];
+            minPt.Z = cld.header["Min Z"];
+
+            Point3d maxPt = new Point3d();
+            maxPt.X = cld.header["Max X"];
+            maxPt.Y = cld.header["Max Y"];
+            maxPt.Z = cld.header["Max Z"];
+
+            int ptFrmt = Convert.ToInt32(cld.header["Point Format"]);
+
+
+            DA.SetData(0, ptCount);
+            DA.SetData(1, minPt);
+            DA.SetData(2, maxPt);
+            DA.SetData(3, ptFrmt);
         }
 
         /// <summary>
