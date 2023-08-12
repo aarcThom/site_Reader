@@ -26,7 +26,7 @@ namespace siteReader.Components
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
-            pManager.AddMeshParameter("Crop Shape", "Brep or Mesh", "The shape to crop the point cloud", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Crop Shape(s)", "Brep or Mesh", "The shape(s) to crop the point cloud", GH_ParamAccess.list);
             pManager.AddBooleanParameter("Inside", "In", "If set to true, points inside the cloud will be kept. If set to false, points outside the cloud will be kept.", GH_ParamAccess.item, true);
         }
 
@@ -55,13 +55,20 @@ namespace siteReader.Components
                 return;
             }
 
-            Mesh cropMesh = new Mesh();
-            if (!DA.GetData(1, ref cropMesh)) return;
+            var cropMeshes = new List<Mesh>();
+            if (!DA.GetDataList(1, cropMeshes)) return;
 
             bool inside = true;
             if (!DA.GetData(2, ref inside)) return;
 
             //THE WORK -----------------------------------------------------------------------------
+            var cropMesh = new Mesh();
+            foreach (Mesh mesh in cropMeshes) 
+            { 
+                cropMesh.Append(mesh);
+            }
+
+
             AsprCld cropCloud = LasMethods.CropPtCloud(cld, cropMesh, inside);
 
             DA.SetData(0, cropCloud);
