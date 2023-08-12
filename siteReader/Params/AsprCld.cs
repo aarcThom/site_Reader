@@ -37,11 +37,11 @@ namespace siteReader.Params
             _path = cld.path;
             _laszip = cld.laszip;
 
-            _vlr = cld.vlr;
-            _header = cld.header;
+            _vlr = cld.vlr.Copy();
+            _header = cld.header.Copy();
             _format = cld.pointFormat;
 
-            _ptCloud = cld.ptCloud;
+            _ptCloud = new PointCloud(cld.ptCloud);
             this.m_value = _ptCloud;
         }
 
@@ -50,8 +50,8 @@ namespace siteReader.Params
             _path = cld.path;
             _laszip = cld.laszip;
 
-            _vlr = cld.vlr;
-            _header = cld.header;
+            _vlr = cld.vlr.Copy();
+            _header = cld.header.Copy();
             _format = cld.pointFormat;
 
             _ptCloud = transformedCloud;
@@ -63,7 +63,7 @@ namespace siteReader.Params
             _userRefCld = true;
             _format = 77; //reserve this format # for user ref'd clouds
 
-            _ptCloud = ptCld;
+            _ptCloud = new PointCloud(ptCld);
             this.m_value = _ptCloud;
         }
 

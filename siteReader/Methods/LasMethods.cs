@@ -243,23 +243,23 @@ namespace siteReader.Methods
             return ptCloud;
         }
 
-        public static AsprCld CropPtCloud(AsprCld cld, Brep brep, bool inside)
+        public static AsprCld CropPtCloud(AsprCld cld, Mesh cropMesh, bool inside)
         {
-            var ptCld = cld.ptCloud;
-            var ptIx = cld.ptIndices;
+            var ptCld = new PointCloud(cld.ptCloud);
+            var ptIx = new List<int>(cld.ptIndices);
             var ptCnt = cld.ptCloud.Count;
 
             for (int i = ptCnt - 1; i >= 0; i--)
             {
                 var pt = ptCld[i].Location;
 
-                if (brep.IsPointInside(pt, RhinoMath.SqrtEpsilon, true) && inside)
+                if (!cropMesh.IsPointInside(pt, RhinoMath.SqrtEpsilon, true) && inside)
                 {
                     ptCld.RemoveAt(i);
                     //ptIx.RemoveAt(i);
                 }
                 
-                else if (brep.IsPointInside(pt, RhinoMath.SqrtEpsilon, true) && !inside)
+                else if (cropMesh.IsPointInside(pt, RhinoMath.SqrtEpsilon, true) && !inside)
                 {
                     ptCld.RemoveAt(i);
                     //ptIx.RemoveAt(i);
