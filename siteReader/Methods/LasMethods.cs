@@ -8,6 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using Grasshopper.Kernel.Types.Transforms;
+using System.IO;
+using Rhino;
 
 namespace siteReader.Methods
 {
@@ -186,7 +189,7 @@ namespace siteReader.Methods
             return false;
         }
 
-        public static PointCloud GetCoordinates(AsprCld cld, ref List<int> ptIxs)
+        public static PointCloud GetInitialPts(AsprCld cld, ref List<int> ptIxs)
         {
             var lz = cld.laszip;
             var path = cld.path;
@@ -238,6 +241,36 @@ namespace siteReader.Methods
             ptIxs = ptIndices;
 
             return ptCloud;
+        }
+
+        public static AsprCld CropPtCloud(AsprCld cld, Brep brep, bool inside)
+        {
+            var ptCld = cld.ptCloud;
+            var ptIx = cld.ptIndices;
+            var ptCnt = cld.ptCloud.Count;
+
+            for (int i = ptCnt - 1; i >= 0; i--)
+            {
+                var pt = ptCld[i].Location;
+
+                if (brep.IsPointInside(pt, RhinoMath.SqrtEpsilon, true) && inside)
+                {
+                    ptCld.RemoveAt(i);
+                    //ptIx.RemoveAt(i);
+                }
+                
+                else if (brep.IsPointInside(pt, RhinoMath.SqrtEpsilon, true) && !inside)
+                {
+                    ptCld.RemoveAt(i);
+                    //ptIx.RemoveAt(i);
+                }
+               
+            }
+
+            AsprCld cropped = new AsprCld(ptCld, cld);
+            cropped.ptIndices = ptIx;
+
+            return cropped;
         }
     }
 }

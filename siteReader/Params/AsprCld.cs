@@ -105,7 +105,7 @@ namespace siteReader.Params
 
         //geometry properties
         public PointCloud ptCloud => _ptCloud;
-        public List<Int32> ptIndices => _ptIndices;
+        public List<Int32> ptIndices { get => _ptIndices; set => _ptIndices = value; }
 
         //grasshopper options
         public float displayDensity { get; set; }
@@ -190,7 +190,7 @@ namespace siteReader.Params
         //CLOUD METHODS
         public void GetPointCloud()
         {
-            _ptCloud = LasMethods.GetCoordinates(this, ref _ptIndices);
+            _ptCloud = LasMethods.GetInitialPts(this, ref _ptIndices);
         }
 
     }
