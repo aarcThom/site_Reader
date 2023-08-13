@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using g3;
+using Rhino.Geometry;
 
 namespace siteReader.Methods
 {
@@ -85,6 +87,95 @@ namespace siteReader.Methods
             int g = Convert.ToInt32(arrIN[2]) / 256;
 
             return Color.FromArgb(r, b, g);
+        }
+
+
+        public static Mesh TriangulateMesh(Mesh inMesh)
+        {
+            foreach (var face in inMesh.Faces)
+            {
+                if (face.IsQuad)
+                {
+                    double dist1 = inMesh.Vertices[face.A].DistanceTo
+                        (inMesh.Vertices[face.C]);
+                    double dist2 = inMesh.Vertices[face.B].DistanceTo
+                        (inMesh.Vertices[face.D]);
+
+                    if (dist1 > dist2)
+                    {
+                        inMesh.Faces.AddFace(face.A, face.B, face.D);
+                        inMesh.Faces.AddFace(face.B, face.C, face.D);
+                    }
+                    else
+                    {
+                        inMesh.Faces.AddFace(face.A, face.B, face.C);
+                        inMesh.Faces.AddFace(face.A, face.C, face.D);
+                    }
+                }
+            }
+
+            var newFaces = new List<MeshFace>();
+            foreach (var fc in inMesh.Faces)
+            {
+                if (fc.IsTriangle) newFaces.Add(fc);
+            }
+
+            inMesh.Faces.Clear();
+            inMesh.Faces.AddFaces(newFaces);
+
+            return inMesh;
+        }
+
+        public static List<g3.Vector3d> GetFaces(Mesh mesh)
+        {
+            var triList = new List<g3.Vector3d>();
+
+            foreach (var face in mesh.Faces)
+            {
+                var tri = new g3.Vector3d(face.A, face.B, face.C);
+                triList.Add(tri);
+            }
+
+            return triList;
+        }
+
+        public static List<g3.Vector3f> GetVertices(Mesh mesh)
+        {
+            var vertices = new List<g3.Vector3f>();
+
+            foreach (var vert in mesh.Vertices)
+            {
+                var coords = new g3.Vector3f(vert.X, vert.Y, vert.Z);
+                vertices.Add(coords);
+            }
+
+            return vertices;
+        }
+
+        public static List<g3.Vector3f> GetNormals(Mesh mesh)
+        {
+            var normals = new List<g3.Vector3f>();
+
+            foreach (var norm in mesh.Normals)
+            {
+                var normal = new g3.Vector3f(norm.X, norm.Y, norm.Z);
+                normals.Add(normal);
+            }
+
+            return normals;
+        }
+
+
+        public static DMesh3 MeshtoDMesh(Mesh rMesh)
+        {
+            Mesh triMesh = TriangulateMesh(rMesh);
+
+            var faces = GetFaces(triMesh);
+            var vertices = GetVertices(triMesh);
+            var normals = GetNormals(triMesh);
+
+            DMesh3 dMesh = DMesh3Builder.Build(vertices, faces, normals);
+            return dMesh;
         }
     }
 }
