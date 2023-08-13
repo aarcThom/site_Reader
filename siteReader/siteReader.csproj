@@ -10,6 +10,7 @@
   
   <ItemGroup>
     <PackageReference Include="Aardvark.Data.Points.LasZip" Version="5.2.25" />
+    <PackageReference Include="geometry3Sharp" Version="1.0.324" />
     <PackageReference Include="Grasshopper" Version="7.13.21348.13001" IncludeAssets="compile;build" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
