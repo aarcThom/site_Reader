@@ -40,6 +40,7 @@ namespace siteReader.Params
             _vlr = cld.vlr.Copy();
             _header = cld.header.Copy();
             _format = cld.pointFormat;
+            _ptIndices = cld.ptIndices.Copy();
 
             _ptCloud = new PointCloud(cld.ptCloud);
             this.m_value = _ptCloud;
@@ -53,6 +54,7 @@ namespace siteReader.Params
             _vlr = cld.vlr.Copy();
             _header = cld.header.Copy();
             _format = cld.pointFormat;
+            _ptIndices = cld.ptIndices.Copy();
 
             _ptCloud = transformedCloud;
             this.m_value = _ptCloud;
@@ -86,7 +88,7 @@ namespace siteReader.Params
         private LASzip.Net.laszip _laszip;
 
         private PointCloud _ptCloud;
-        private List<Int32> _ptIndices = new List<Int32>();
+        private List<Int32> _ptIndices;
 
         //PROPERTIES---------------------------------------------------------
 
@@ -190,7 +192,7 @@ namespace siteReader.Params
         //CLOUD METHODS
         public void GetPointCloud()
         {
-            _ptCloud = LasMethods.GetInitialPts(this, ref _ptIndices);
+            (_ptCloud, _ptIndices) = LasMethods.GetInitialPts(this);
         }
 
     }

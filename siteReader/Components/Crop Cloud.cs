@@ -67,6 +67,8 @@ namespace siteReader.Components
             //THE WORK -----------------------------------------------------------------------------
 
             var ptCloud = new PointCloud();
+
+            List<int> newIndices = new List<int>();
             
             var cropMesh = new Mesh();
             foreach (Mesh mesh in cropMeshes) 
@@ -80,6 +82,8 @@ namespace siteReader.Components
 
             var dir = new g3.Vector3d(0, 0, 1);
 
+            int count = 0;
+
             foreach (var item in cld.ptCloud)
             {
                 var rPt = item.Location;
@@ -91,11 +95,15 @@ namespace siteReader.Components
                 if (hitCnt % 2 != 0 && inside)
                 {
                     ptCloud.Add(rPt, item.Color);
+                    newIndices.Add(cld.ptIndices[count]);
                 } 
                 else if (hitCnt % 2 == 0 && !inside)
                 {
                     ptCloud.Add(rPt, item.Color);
+                    newIndices.Add(cld.ptIndices[count]);
                 }
+
+                count++;
 
             }
 
