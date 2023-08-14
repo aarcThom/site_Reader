@@ -126,13 +126,13 @@ namespace siteReader.Methods
             return inMesh;
         }
 
-        public static List<g3.Vector3d> GetFaces(Mesh mesh)
+        public static List<g3.Index3i> GetFaces(Mesh mesh)
         {
-            var triList = new List<g3.Vector3d>();
+            var triList = new List<g3.Index3i>();
 
             foreach (var face in mesh.Faces)
             {
-                var tri = new g3.Vector3d(face.A, face.B, face.C);
+                var tri = new g3.Index3i(face.A, face.B, face.C);
                 triList.Add(tri);
             }
 
@@ -174,7 +174,18 @@ namespace siteReader.Methods
             var vertices = GetVertices(triMesh);
             var normals = GetNormals(triMesh);
 
-            DMesh3 dMesh = DMesh3Builder.Build(vertices, faces, normals);
+            DMesh3 dMesh = new DMesh3(MeshComponents.VertexNormals);
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                dMesh.AppendVertex(new NewVertexInfo(vertices[i], normals[i]));
+            }
+            foreach(var tri in faces)
+            {
+                dMesh.AppendTriangle(tri);
+            }
+
+
+
             return dMesh;
         }
     }

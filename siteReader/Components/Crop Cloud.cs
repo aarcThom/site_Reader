@@ -11,13 +11,13 @@ using Mesh = Rhino.Geometry.Mesh;
 
 namespace siteReader.Components
 {
-    public class CropCloudD3 : GH_Component
+    public class CropCloud : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the CropCloud class.
         /// </summary>
-        public CropCloudD3()
-          : base("Crop CloudD3", "CropCldD3",
+        public CropCloud()
+          : base("Crop Cloud", "CropCld",
               "Remove any points from a point cloud that are not in (or outside) a given brep",
               "SiteReader", "Point Clouds")
         {
@@ -78,7 +78,7 @@ namespace siteReader.Components
             DMeshAABBTree3 spatial = new DMeshAABBTree3(dMesh);
             spatial.Build();
 
-            g3.Vector3d dir = new g3.Vector3d(0, 0, 1);
+            var dir = new g3.Vector3d(0, 0, 1);
 
             foreach (var item in cld.ptCloud)
             {
@@ -86,10 +86,13 @@ namespace siteReader.Components
                 g3.Vector3d pt = new g3.Vector3d(rPt.X, rPt.Y, rPt.Z);
                 g3.Ray3d ray = new g3.Ray3d(pt, dir);
 
-                List<int>hitTriangles = new List<int>();
-                spatial.FindAllHitTriangles(ray, hitTriangles);
+                int hitCnt = spatial.FindAllHitTriangles(ray);
 
-                if (hitTriangles.Count % 2 != 0)
+                if (hitCnt % 2 != 0 && inside)
+                {
+                    ptCloud.Add(rPt, item.Color);
+                } 
+                else if (hitCnt % 2 == 0 && !inside)
                 {
                     ptCloud.Add(rPt, item.Color);
                 }

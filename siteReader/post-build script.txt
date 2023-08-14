@@ -1,0 +1,3 @@
+﻿robocopy $(TargetDir) C:\Users\%USERNAME%\AppData\Roaming\Grasshopper\Libraries\sitereader
+set rce=%errorlevel%
+if not %rce%==1 exit %rce% else exit 0
