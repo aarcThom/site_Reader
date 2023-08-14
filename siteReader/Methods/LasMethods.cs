@@ -189,7 +189,7 @@ namespace siteReader.Methods
             return false;
         }
 
-        public static PointCloud GetInitialPts(AsprCld cld, ref List<int> ptIxs)
+        public static (PointCloud, List<int>) GetInitialPts(AsprCld cld)
         {
             var lz = cld.laszip;
             var path = cld.path;
@@ -197,6 +197,7 @@ namespace siteReader.Methods
             var density = cld.displayDensity;
             var format = cld.pointFormat;
 
+            List<int> ptIndices = new List<int>();
 
             var ptCloud = new PointCloud();
             bool isCompressed;
@@ -206,7 +207,7 @@ namespace siteReader.Methods
             List<int> densityMask = GetMaskingPattern(density);
             int maskIx = 0;
 
-            List<int> ptIndices = new List<int>();
+            
 
             for (int i = 0; i < pointCount; i++)
             {
@@ -238,9 +239,8 @@ namespace siteReader.Methods
             }
             lz.close_reader();
 
-            ptIxs = ptIndices;
 
-            return ptCloud;
+            return (ptCloud, ptIndices);
         }
 
         public static AsprCld CropPtCloud(AsprCld cld, Mesh cropMesh, bool inside)
