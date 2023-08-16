@@ -252,7 +252,7 @@ namespace siteReader.Methods
         {
             var lz = cld.laszip;
             var path = cld.path;
-            var ptIx = cld.ptMask;
+            var ptMask = cld.ptMask;
             var header = cld.header;
             var ptCld = cld.ptCloud;
 
@@ -265,23 +265,19 @@ namespace siteReader.Methods
 
             int pointCount = header["Number of Points"].ToInt();
 
-            int counter = 0;
 
             for (int i = 0; i < pointCount; i++)
             {
                 lz.read_point();
 
-                var intensity = lz.point.intensity;
-                //intenseList.Add(Convert.ToInt32(intensity * ratio));
-                counter++;
-                /*
-                if (ptMask.Contains(i))
+                if (ptMask[i])
                 {
+                    // fix conversion below
                     var intensity = lz.point.intensity;
-                    //intenseList.Add(Convert.ToInt32(intensity * ratio));
-                    counter++;
+                    int rounded = Convert.ToInt32(intensity);
+                    intenseList.Add(Convert.ToInt32(intensity));
                 }
-                */
+                
             }
             lz.close_reader();
             return intenseList;
