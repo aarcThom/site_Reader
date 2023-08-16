@@ -243,6 +243,42 @@ namespace siteReader.Methods
             return (ptCloud, ptIndices);
         }
 
+        public static PointCloud ColorByField(AsprCld cld)
+        {
+            var lz = cld.laszip;
+            var path = cld.path;
+            var ptIx = cld.ptIndices;
+            var header = cld.header;
+            var ptCld = cld.ptCloud;
+
+
+            var ptCloud = new PointCloud();
+            bool isCompressed;
+            lz.open_reader(path, out isCompressed);
+
+            int pointCount = header["Number of Points"].ToInt();
+
+            int counter = 0;
+
+            for (int i = 0; i < pointCount; i++)
+            {
+                lz.read_point();
+
+                if (ptIx.Contains(i))
+                {
+                    var intensity = lz.point.intensity;
+                    Color newCol = ASPR.GetIntensityCol(intensity);
+
+                    ptCloud.Add(ptCld.PointAt(counter), newCol);
+                    counter++;
+                }
+            }
+            lz.close_reader();
+
+
+            return (ptCloud);
+        }
+
         public static AsprCld CropPtCloud(AsprCld cld, Mesh cropMesh, bool inside)
         {
             var ptCld = new PointCloud(cld.ptCloud);
