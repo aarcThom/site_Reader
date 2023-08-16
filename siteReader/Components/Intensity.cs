@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Eto.Drawing;
 using Grasshopper;
+using Grasshopper.GUI.Gradient;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
@@ -35,7 +37,8 @@ namespace siteReader.Components
         {
            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
            pManager.AddColourParameter("Gradient", "Grad", "The color gradient that will be used to visualize point cloud fields. " +
-                "Note: if you edit the inputs of the gradient component inputs, you may get slower compute times and strange results.", GH_ParamAccess.list);
+                "Note: if you edit the the gradient component inputs, or replace the auto generated gradient component you may get slower compute times and strange results." +
+                "Absolutely feel free to set your own color scheme though!", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -62,16 +65,19 @@ namespace siteReader.Components
                 gradComp.CreateAttributes();
 
                 // add default values to the grad component parameters
-                var lowerLimit = gradComp.Params.Input[0] as Param_Number;
-                lowerLimit.AddVolatileData(new Grasshopper.Kernel.Data.GH_Path(0), 0, new GH_Number(0));
-
                 var upperLimit = gradComp.Params.Input[1] as Param_Number;
-                upperLimit.AddVolatileData(new Grasshopper.Kernel.Data.GH_Path(0), 0, new GH_Number(255));
+                upperLimit.PersistentData.ClearData();
+                upperLimit.PersistentData.Append(new GH_Number(255));
 
-                var valRange = Enumerable.Range(0, 255);
+                var ghRange = new List<GH_Number>();
+
+                for (int i = 0; i < 256; i++)
+                {
+                    ghRange.Add(new GH_Number(i));
+                }
 
                 var steps = gradComp.Params.Input[2] as Param_Number;
-                steps.AddVolatileDataList(new Grasshopper.Kernel.Data.GH_Path(0), valRange);
+                steps.PersistentData.AppendRange(ghRange);
 
 
                 //get postion for gradient component
@@ -93,6 +99,7 @@ namespace siteReader.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            gradComp.ComputeData();
 
             // GET INPUTS ---------------------------------------------------------------------------
 
@@ -104,6 +111,13 @@ namespace siteReader.Components
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no points to color");
                 return;
             }
+
+            List<Color> colors = new List<Color>();
+            if (!DA.SetDataList(1, colors)) return;
+
+
+
+
             
 
 
