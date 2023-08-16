@@ -40,7 +40,7 @@ namespace siteReader.Params
             _vlr = cld.vlr.Copy();
             _header = cld.header.Copy();
             _format = cld.pointFormat;
-            _ptIndices = cld.ptIndices.Copy();
+            _ptMask = cld.ptMask.Copy();
 
             _ptCloud = new PointCloud(cld.ptCloud);
             this.m_value = _ptCloud;
@@ -54,7 +54,21 @@ namespace siteReader.Params
             _vlr = cld.vlr.Copy();
             _header = cld.header.Copy();
             _format = cld.pointFormat;
-            _ptIndices = cld.ptIndices.Copy();
+            _ptMask = cld.ptMask.Copy();
+
+            _ptCloud = transformedCloud;
+            this.m_value = _ptCloud;
+        }
+
+        public AsprCld(PointCloud transformedCloud, AsprCld cld, List<bool> ptMask)
+        {
+            _path = cld.path;
+            _laszip = cld.laszip;
+
+            _vlr = cld.vlr.Copy();
+            _header = cld.header.Copy();
+            _format = cld.pointFormat;
+            _ptMask = ptMask;
 
             _ptCloud = transformedCloud;
             this.m_value = _ptCloud;
@@ -88,7 +102,7 @@ namespace siteReader.Params
         private LASzip.Net.laszip _laszip;
 
         private PointCloud _ptCloud;
-        private List<Int32> _ptIndices;
+        private List<bool> _ptMask;
 
         //PROPERTIES---------------------------------------------------------
 
@@ -107,7 +121,7 @@ namespace siteReader.Params
 
         //geometry properties
         public PointCloud ptCloud => _ptCloud;
-        public List<Int32> ptIndices { get => _ptIndices; set => _ptIndices = value; }
+        public List<bool> ptMask { get => _ptMask; set => _ptMask = value; }
 
         //grasshopper options
         public float displayDensity { get; set; }
@@ -192,7 +206,7 @@ namespace siteReader.Params
         //CLOUD METHODS
         public void GetPointCloud()
         {
-            (_ptCloud, _ptIndices) = LasMethods.GetInitialPts(this);
+            (_ptCloud, _ptMask) = LasMethods.GetInitialPts(this);
         }
 
     }

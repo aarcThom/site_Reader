@@ -11,6 +11,7 @@ using System.Drawing;
 using Grasshopper.Kernel.Types.Transforms;
 using System.IO;
 using Rhino;
+using System.Drawing.Text;
 
 namespace siteReader.Methods
 {
@@ -189,7 +190,7 @@ namespace siteReader.Methods
             return false;
         }
 
-        public static (PointCloud, List<int>) GetInitialPts(AsprCld cld)
+        public static (PointCloud, List<bool>) GetInitialPts(AsprCld cld)
         {
             var lz = cld.laszip;
             var path = cld.path;
@@ -197,7 +198,7 @@ namespace siteReader.Methods
             var density = cld.displayDensity;
             var format = cld.pointFormat;
 
-            List<int> ptIndices = new List<int>();
+            List<bool> ptMask = new List<bool>();
 
             var ptCloud = new PointCloud();
             bool isCompressed;
@@ -215,7 +216,7 @@ namespace siteReader.Methods
 
                 if (densityMask.Contains(maskIx))
                 {
-                    ptIndices.Add(i);
+                    ptMask.Add(true);
 
                     double[] coords = new double[3];
                     lz.get_coordinates(coords);
@@ -233,6 +234,10 @@ namespace siteReader.Methods
                         ptCloud.Add(rPoint);
                     }
                 }
+                else
+                {
+                    ptMask.Add(false);
+                }
 
                 maskIx++;
                 if (maskIx == 10) maskIx = 0;
@@ -240,19 +245,21 @@ namespace siteReader.Methods
             lz.close_reader();
 
 
-            return (ptCloud, ptIndices);
+            return (ptCloud, ptMask);
         }
 
-        public static PointCloud ColorByField(AsprCld cld)
+        public static List<int> GetIntensity(AsprCld cld)
         {
             var lz = cld.laszip;
             var path = cld.path;
-            var ptIx = cld.ptIndices;
+            var ptIx = cld.ptMask;
             var header = cld.header;
             var ptCld = cld.ptCloud;
 
+            float ratio = 255 / 65535;
 
-            var ptCloud = new PointCloud();
+
+            var intenseList = new List<int>();
             bool isCompressed;
             lz.open_reader(path, out isCompressed);
 
@@ -264,49 +271,21 @@ namespace siteReader.Methods
             {
                 lz.read_point();
 
-                if (ptIx.Contains(i))
+                var intensity = lz.point.intensity;
+                //intenseList.Add(Convert.ToInt32(intensity * ratio));
+                counter++;
+                /*
+                if (ptMask.Contains(i))
                 {
                     var intensity = lz.point.intensity;
-                    Color newCol = ASPR.GetIntensityCol(intensity);
-
-                    ptCloud.Add(ptCld.PointAt(counter), newCol);
+                    //intenseList.Add(Convert.ToInt32(intensity * ratio));
                     counter++;
                 }
+                */
             }
             lz.close_reader();
+            return intenseList;
 
-
-            return (ptCloud);
-        }
-
-        public static AsprCld CropPtCloud(AsprCld cld, Mesh cropMesh, bool inside)
-        {
-            var ptCld = new PointCloud(cld.ptCloud);
-            var ptIx = new List<int>(cld.ptIndices);
-            var ptCnt = cld.ptCloud.Count;
-
-            for (int i = ptCnt - 1; i >= 0; i--)
-            {
-                var pt = ptCld[i].Location;
-
-                if (!cropMesh.IsPointInside(pt, RhinoMath.SqrtEpsilon, true) && inside)
-                {
-                    ptCld.RemoveAt(i);
-                    //ptIx.RemoveAt(i);
-                }
-                
-                else if (cropMesh.IsPointInside(pt, RhinoMath.SqrtEpsilon, true) && !inside)
-                {
-                    ptCld.RemoveAt(i);
-                    //ptIx.RemoveAt(i);
-                }
-               
-            }
-
-            AsprCld cropped = new AsprCld(ptCld, cld);
-            cropped.ptIndices = ptIx;
-
-            return cropped;
         }
     }
 }

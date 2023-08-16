@@ -47,6 +47,7 @@ namespace siteReader.Components
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("test", "t", "yo", GH_ParamAccess.list);
         }
 
         //adding this so we can add a gradient control without any inputs
@@ -114,6 +115,10 @@ namespace siteReader.Components
 
             List<Color> colors = new List<Color>();
             if (!DA.SetDataList(1, colors)) return;
+
+            var intList = LasMethods.GetIntensity(cld);
+
+            DA.SetDataList(1, intList);
 
 
 

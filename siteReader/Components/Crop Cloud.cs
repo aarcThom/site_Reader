@@ -8,6 +8,7 @@ using siteReader.Params;
 using g3;
 using Rhino.Render.ChangeQueue;
 using Mesh = Rhino.Geometry.Mesh;
+using Aardvark.Base;
 
 namespace siteReader.Components
 {
@@ -68,7 +69,7 @@ namespace siteReader.Components
 
             var ptCloud = new PointCloud();
 
-            List<int> newIndices = new List<int>();
+            List<bool> newMask = cld.ptMask.Copy();
             
             var cropMesh = new Mesh();
             foreach (Mesh mesh in cropMeshes) 
@@ -82,29 +83,36 @@ namespace siteReader.Components
 
             var dir = new g3.Vector3d(0, 0, 1);
 
-            int count = 0;
+            int ptCount = 0;
 
-            foreach (var item in cld.ptCloud)
+            for (int mskCount = 0; mskCount < newMask.Count; mskCount++)
             {
-                var rPt = item.Location;
-                g3.Vector3d pt = new g3.Vector3d(rPt.X, rPt.Y, rPt.Z);
-                g3.Ray3d ray = new g3.Ray3d(pt, dir);
-
-                int hitCnt = spatial.FindAllHitTriangles(ray);
-
-                if (hitCnt % 2 != 0 && inside)
+                if (newMask[mskCount])
                 {
-                    ptCloud.Add(rPt, item.Color);
-                    newIndices.Add(cld.ptIndices[count]);
-                } 
-                else if (hitCnt % 2 == 0 && !inside)
-                {
-                    ptCloud.Add(rPt, item.Color);
-                    newIndices.Add(cld.ptIndices[count]);
+                    var item = cld.ptCloud[ptCount];
+
+                    var rPt = item.Location;
+                    g3.Vector3d pt = new g3.Vector3d(rPt.X, rPt.Y, rPt.Z);
+                    g3.Ray3d ray = new g3.Ray3d(pt, dir);
+
+                    int hitCnt = spatial.FindAllHitTriangles(ray);
+
+                    if (hitCnt % 2 != 0 && inside)
+                    {
+                        ptCloud.Add(rPt, item.Color);
+                    }
+                    else if (hitCnt % 2 == 0 && !inside)
+                    {
+                        ptCloud.Add(rPt, item.Color);
+                    }
+                    else
+                    {
+                        newMask[mskCount] = false;
+                    }
+
+                    ptCount++;
                 }
-
-                count++;
-
+                
             }
 
             AsprCld cropCloud = new AsprCld(ptCloud, cld);
