@@ -12,6 +12,8 @@ using Grasshopper.Kernel.Types.Transforms;
 using System.IO;
 using Rhino;
 using System.Drawing.Text;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using g3;
 
 namespace siteReader.Methods
 {
@@ -190,15 +192,19 @@ namespace siteReader.Methods
             return false;
         }
 
-        public static (PointCloud, List<bool>) GetInitialPts(AsprCld cld)
+        public static (PointCloud, List<ushort>, List<Color>, List<byte>, List<byte>) GetPtCloud(AsprCld cld, float density, List<Mesh> crops, bool inside)
         {
             var lz = cld.laszip;
             var path = cld.path;
             var header = cld.header;
-            var density = cld.displayDensity;
             var format = cld.pointFormat;
 
-            List<bool> ptMask = new List<bool>();
+            var intensity = new List<ushort>();
+            var rgb = new List<Color>();
+            var classification = new List<byte>();
+            var numReturns = new List<byte>();
+
+            var hasRGB = ContainsRGB(format);
 
             var ptCloud = new PointCloud();
             bool isCompressed;
@@ -206,17 +212,129 @@ namespace siteReader.Methods
 
             int pointCount = header["Number of Points"].ToInt();
             List<int> densityMask = GetMaskingPattern(density);
+
+            //cropping stuff if needed
+            DMeshAABBTree3 spatial = BuildSpatialTree(crops);
+
             int maskIx = 0;
-
-            
-
             for (int i = 0; i < pointCount; i++)
             {
                 lz.read_point();
 
                 if (densityMask.Contains(maskIx))
                 {
-                    ptMask.Add(true);
+                    double[] coords = new double[3];
+                    lz.get_coordinates(coords);
+                    var rPoint = new Point3d(coords[0], coords[1], coords[2]);
+
+                    if (spatial == null || PtInsideCrop(spatial, rPoint, inside))
+                    {
+                        var lsPt = lz.point;
+
+                        ptCloud.Add(rPoint);
+                        intensity.Add(lsPt.intensity);
+                        if (hasRGB) rgb.Add(Utility.ConvertRGB(lsPt.rgb));
+                        classification.Add(lsPt.classification);
+                        numReturns.Add(lsPt.number_of_returns);
+                    }
+                }
+                maskIx++;
+                if (maskIx == 10) maskIx = 0;
+            }
+            lz.close_reader();
+
+
+            return (ptCloud, intensity, rgb, classification, numReturns);
+        }
+
+        // SO IT TURNS OUT RGB IS REALLY THE ONLY FORMAT SPECIFIC FIELD
+        // IF YOU NEED IT FOR SOME OTHER FIELDS, RESURRECT THIS SWITCH METHOD
+        /*
+        private static bool ContainsField(string field, byte format)
+        {
+            var contains = false;
+
+            switch (field)
+            {
+                case "intensity":
+                    var iList = new List<byte> {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+                    if (iList.Contains(format)) contains = true;
+                    break;
+
+                case "rgb":
+                    var rList = new List<byte> { 2, 3, 5, 7, 8, };
+                    if (rList.Contains(format)) contains = true;
+                    break;
+
+                case "classification":
+                    var cList = new List<byte> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+                    if (cList.Contains(format)) contains = true;
+                    break;
+
+                case "numReturns":
+                    var nList = new List<byte> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+                    if (nList.Contains(format)) contains = true;
+                    break;
+
+            }
+                return contains;
+            }
+        */
+
+        private static DMeshAABBTree3 BuildSpatialTree(List<Mesh> crops)
+        {
+            if (crops == null) return null;
+
+            var cropMesh = new Mesh();
+            foreach (Mesh mesh in crops)
+            {
+                cropMesh.Append(mesh);
+            }
+
+            DMesh3 dMesh = Utility.MeshtoDMesh(cropMesh);
+            DMeshAABBTree3 spatial = new DMeshAABBTree3(dMesh);
+            spatial.Build();
+
+            return spatial;
+        }
+
+
+        private static bool PtInsideCrop(DMeshAABBTree3 spatial, Point3d rPt, bool inside)
+        {
+            var dir = new g3.Vector3d(0, 0, 1);
+            g3.Vector3d pt = new g3.Vector3d(rPt.X, rPt.Y, rPt.Z);
+            g3.Ray3d ray = new g3.Ray3d(pt, dir);
+
+            int hitCnt = spatial.FindAllHitTriangles(ray);
+
+            if ((hitCnt % 2 != 0 && inside) || (hitCnt % 2 == 0 && !inside))
+            {
+                return true;
+            }
+            return false;
+        }
+
+
+        public static PointCloud GetPreviewCld(AsprCld cld)
+        {
+            var lz = cld.laszip;
+            var path = cld.path;
+            var header = cld.header;
+            var format = cld.pointFormat;
+
+            var ptCloud = new PointCloud();
+            bool isCompressed;
+            lz.open_reader(path, out isCompressed);
+
+            int pointCount = header["Number of Points"].ToInt();
+            int maskIx = 0;
+
+            for (int i = 0; i < pointCount; i++)
+            {
+                lz.read_point();
+
+                if (maskIx == 5)
+                {
 
                     double[] coords = new double[3];
                     lz.get_coordinates(coords);
@@ -234,54 +352,12 @@ namespace siteReader.Methods
                         ptCloud.Add(rPoint);
                     }
                 }
-                else
-                {
-                    ptMask.Add(false);
-                }
 
                 maskIx++;
                 if (maskIx == 10) maskIx = 0;
             }
             lz.close_reader();
-
-
-            return (ptCloud, ptMask);
-        }
-
-        public static List<int> GetIntensity(AsprCld cld)
-        {
-            var lz = cld.laszip;
-            var path = cld.path;
-            var ptMask = cld.ptMask;
-            var header = cld.header;
-            var ptCld = cld.ptCloud;
-
-            float ratio = 255 / 65535;
-
-
-            var intenseList = new List<int>();
-            bool isCompressed;
-            lz.open_reader(path, out isCompressed);
-
-            int pointCount = header["Number of Points"].ToInt();
-
-
-            for (int i = 0; i < pointCount; i++)
-            {
-                lz.read_point();
-
-                if (ptMask[i])
-                {
-                    // fix conversion below
-                    var intensity = lz.point.intensity;
-                    int rounded = Convert.ToInt32(intensity);
-                    intenseList.Add(Convert.ToInt32(intensity));
-                }
-                
-            }
-            lz.close_reader();
-            return intenseList;
-
+            return ptCloud;
         }
     }
 }

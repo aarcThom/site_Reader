@@ -115,24 +115,6 @@ namespace siteReader.Components
 
             List<Color> colors = new List<Color>();
             if (!DA.SetDataList(1, colors)) return;
-
-            var intList = LasMethods.GetIntensity(cld);
-
-            DA.SetDataList(1, intList);
-
-
-
-
-            
-
-
-
-
-            //AsprCld colorCloud = new AsprCld(LasMethods.ColorByField(cld), cld);
-
-            //DA.SetData(0, colorCloud);
-
-
         }
 
         /// <summary>
