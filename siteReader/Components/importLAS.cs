@@ -36,7 +36,7 @@ namespace siteReader.Components
 
         //view attributes
         private float _cloudDensity = 0f;
-        private bool _previewCloud = false;
+        private bool _importCloud = false;
 
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace siteReader.Components
 
                 _prevPath = currentPath;
 
-                if (_previewCloud) 
+                if (_importCloud) 
                 { 
                     GetCloud(DA, overRide: true); 
                 } 
@@ -144,14 +144,14 @@ namespace siteReader.Components
             _cloudDensity = value;
         }
 
-        public void SetPreview(bool preview)
+        public void SetImport(bool import)
         {
-            _previewCloud = preview;
+            _importCloud = import;
         }
 
         public void ZoomCloud()
         {
-            if (_previewCloud && _asprCld.ptCloud != null)
+            if (_importCloud && _asprCld.ptCloud != null)
             {
                 var bBox = _asprCld.ptCloud.GetBoundingBox(true);
                 RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.ZoomBoundingBox(bBox);
@@ -162,15 +162,43 @@ namespace siteReader.Components
         //This region overrides the typical component layout
         public override void CreateAttributes()
         {
-            m_attributes = new SiteReader.UI.BaseAttributes(this, SetVal, SetPreview, ZoomCloud);
+            m_attributes = new SiteReader.UI.BaseAttributes(this, SetVal, SetImport, ZoomCloud);
         }
+
+        //drawing the point cloud if preview is enabled
+        public override void DrawViewportWires(IGH_PreviewArgs args)
+        {
+            if (_asprCld.ptCloud != null && _importCloud)
+            {
+                args.Display.DrawPointCloud(_asprCld.ptCloud, 2);
+            }
+
+        }
+
+        //Return a BoundingBox that contains all the geometry you are about to draw.
+        public override BoundingBox ClippingBox
+        {
+            get
+            {
+                if (_asprCld != null && _asprCld.ptCloud != null && _importCloud)
+                {
+                    return _asprCld.ptCloud.GetBoundingBox(true);
+                }
+
+                return base.ClippingBox;
+
+            }
+        }
+
+        //need to override this to be previewable despite having no geo output with preview method
+        public override bool IsPreviewCapable => true;
 
 
         //OTHER METHODS ------------------------------------------------------------
         private void GetCloud(IGH_DataAccess da, bool overRide = false)
         {
-            // I added the override bool to initialize the pointcloud regardless of preview status when a new file is referenced
-            if (_asprCld != null && _asprCld.displayDensity != _cloudDensity && _previewCloud || overRide)
+            // I added the override bool to initialize the pointcloud regardless of import status when a new file is referenced
+            if (_asprCld != null && _asprCld.displayDensity != _cloudDensity && _importCloud || overRide)
             {
                 _asprCld.displayDensity = _cloudDensity;
                 _asprCld.GetPointCloud();
