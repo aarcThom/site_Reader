@@ -162,7 +162,7 @@ namespace siteReader.Components
         //This region overrides the typical component layout
         public override void CreateAttributes()
         {
-            m_attributes = new SiteReader.UI.BaseAttributes(this, SetVal, SetImport, ZoomCloud);
+            m_attributes = new SiteReader.UI.DensityZoom(this, SetVal, SetImport, ZoomCloud);
         }
 
         //drawing the point cloud if preview is enabled

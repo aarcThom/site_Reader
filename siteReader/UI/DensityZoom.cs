@@ -17,7 +17,7 @@ using MouseButtons = System.Windows.Forms.MouseButtons;
 
 namespace SiteReader.UI
 {
-    public class BaseAttributes : GH_ComponentAttributes
+    public class DensityZoom : GH_ComponentAttributes
     {
 
         // note to self: in C# use Action when you return void, and Func when you return value(s)
@@ -25,10 +25,10 @@ namespace SiteReader.UI
          https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/base
          */
 
-        public BaseAttributes(GH_Component owner, Action<float> sliderValue, Action<bool> previewCld, Action zoomCloud) : base(owner)
+        public DensityZoom(GH_Component owner, Action<float> sliderValue, Action<bool> previewCld, Action zoomCloud) : base(owner)
         {
             _returnSliderVal = sliderValue;
-            _previewCld = previewCld;
+            _importAction = previewCld;
             _zoomCloud = zoomCloud;
         }
 
@@ -36,23 +36,31 @@ namespace SiteReader.UI
 
         //return values
         private readonly Action<float> _returnSliderVal;
-        private readonly Action<bool> _previewCld;
+        private readonly Action<bool> _importAction;
         private readonly Action _zoomCloud;
 
         //rectangles for layouts
-        private RectangleF _pvwButtonBounds;
+        private RectangleF _importLegendBounds;
+        private RectangleF _importBtnBounds;
+        private RectangleF _zoomLegendBounds;
         private RectangleF _zoomButtonBounds;
-        private RectangleF _secondCapsuleBounds;
+        private RectangleF _sliderLegendBounds;
         private RectangleF _sliderBounds;
         private RectangleF _handleShape;
         private PointF _handleNum;
+        private RectangleF _secondCapsuleBounds;
 
         //preview the Cloud?
-        private bool _previewCloud = false;
-        private string _pvwButtonText = "false";
+        private bool _importCloud = false;
+        private string _importBtnTxt = "false";
+        private string _importLegendTxt = "Import the Cloud?";
 
-        //zoom in on cloud button text
-        private string _zoomBttnText = "Zoom in on cloud";
+        //zoom in on cloud button & Legend text
+        private string _zoomLegendTxt = "Zoom in on Cloud";
+        private string _zoomBttnText = "Zoom";
+
+        //string legend for selecting cloud density
+        private string _densityLegendTxt = "Cloud Density Factor";
 
         //field for slider handle position and preview number
         private bool _slid = false;
@@ -87,7 +95,7 @@ namespace SiteReader.UI
 
             const int horizSpacer = 10;
             const int sideSpacer = 2;
-            const int extraHeight = 200;
+            const int extraHeight = 140;
 
             //here we can modify the bounds
             componentRec.Height += extraHeight; // for example
@@ -98,7 +106,10 @@ namespace SiteReader.UI
             //here we can add extra stuff to the layout-------------------------------------------
             _secondCapsuleBounds = new RectangleF(left, bottom, width, extraHeight);
 
-            _sliderBounds = new RectangleF(left, bottom + horizSpacer, width, 20);
+            _sliderLegendBounds = new RectangleF(left, bottom + horizSpacer, width, 10);
+            _sliderLegendBounds.Inflate(-sideSpacer * 2, 0);
+
+            _sliderBounds = new RectangleF(left, _sliderLegendBounds.Bottom + horizSpacer * 0.25f, width, 20);
             _sliderBounds.Inflate(-sideSpacer * 4, 0);
 
 
@@ -132,14 +143,21 @@ namespace SiteReader.UI
             _handleNum = new PointF(_handlePosX + _handleWidth / 2, _handlePosY + _handleWidth + 5);
 
 
+            //the import legend
+            _importLegendBounds = new RectangleF(left, _sliderBounds.Bottom + horizSpacer, width, 10);
+            _importLegendBounds.Inflate(-sideSpacer * 2, 0);
 
-            //the preview pvwButton
-            _pvwButtonBounds = new RectangleF(left, bottom + horizSpacer * 2 + _sliderBounds.Height, width, 20);
-            _pvwButtonBounds.Inflate(-sideSpacer, 0);
+            //the import button
+            _importBtnBounds = new RectangleF(left, _importLegendBounds.Bottom + horizSpacer * 0.25f, width, 20);
+            _importBtnBounds.Inflate(-sideSpacer, 0);
 
-            //the zoom pvwButton
-            _zoomButtonBounds = new RectangleF(left, 
-                bottom + horizSpacer * 3 + _sliderBounds.Height + _pvwButtonBounds.Height, width, 20);
+
+            //the zoom legend
+            _zoomLegendBounds = new RectangleF(left, _importBtnBounds.Bottom + horizSpacer, width, 10);
+            _zoomLegendBounds.Inflate(-sideSpacer * 2, 0);
+
+            //the zoom importBtn
+            _zoomButtonBounds = new RectangleF(left, _zoomLegendBounds.Bottom + horizSpacer * 0.25f, width, 20);
             _zoomButtonBounds.Inflate(-sideSpacer, 0);
 
 
@@ -180,6 +198,15 @@ namespace SiteReader.UI
                 secondCap.Render(graphics, Selected, Owner.Locked, false);
                 secondCap.Dispose();
 
+                //font for legends and slider number value
+                Font font = GH_FontServer.Small;
+                // adjust fontsize to high resolution displays
+                font = new Font(font.FontFamily, font.Size / GH_GraphicsUtil.UiScale, FontStyle.Regular);
+
+
+                //slider legend
+                graphics.DrawString(_densityLegendTxt, font, Brushes.Black, _sliderLegendBounds, GH_TextRenderingConstants.NearCenter);
+
                 //slider line
                 var sliderY = _sliderBounds.Top + _sliderBounds.Height / 2;
                 graphics.DrawLine(outLine, _sliderBounds.Left, sliderY, _sliderBounds.Right, sliderY);
@@ -209,20 +236,19 @@ namespace SiteReader.UI
                 graphics.FillEllipse(CompStyles.HandleFill, _handleShape);
                 graphics.DrawEllipse(outLine, _handleShape);
 
-
-                //slider number value
-                Font font = GH_FontServer.Small;
-                // adjust fontsize to high resolution displays
-                font = new Font(font.FontFamily, font.Size / GH_GraphicsUtil.UiScale, FontStyle.Regular);
-
-
+                //density number text
                 graphics.DrawString(_cloudDensity.ToString(), font, Brushes.Black, _handleNum, GH_TextRenderingConstants.CenterCenter);
 
+                //import legend 
+                graphics.DrawString(_importLegendTxt, font, Brushes.Black, _importLegendBounds, GH_TextRenderingConstants.NearCenter);
 
-                //preview cloud Button
-                GH_Capsule pvwButton = GH_Capsule.CreateTextCapsule(_pvwButtonBounds, _pvwButtonBounds, GH_Palette.Black, _pvwButtonText);
-                pvwButton.Render(graphics, Selected, Owner.Locked, false);
-                pvwButton.Dispose();
+                //import cloud Button
+                GH_Capsule importBtn = GH_Capsule.CreateTextCapsule(_importBtnBounds, _importBtnBounds, GH_Palette.Black, _importBtnTxt);
+                importBtn.Render(graphics, Selected, Owner.Locked, false);
+                importBtn.Dispose();
+
+                //zoom legend 
+                graphics.DrawString(_zoomLegendTxt, font, Brushes.Black, _zoomLegendBounds, GH_TextRenderingConstants.NearCenter);
 
                 //zoom Button
                 GH_Capsule zoomButton = GH_Capsule.CreateTextCapsule(_zoomButtonBounds, _zoomButtonBounds, GH_Palette.Black, _zoomBttnText);
@@ -237,17 +263,17 @@ namespace SiteReader.UI
          * https://discourse.mcneel.com/t/why-i-cannot-move-a-custom-component/72959/4
          */
 
-        //handling double clicks for preview
+        //handling double clicks for import
         public override GH_ObjectResponse RespondToMouseDoubleClick(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                if (_pvwButtonBounds.Contains(e.CanvasLocation))
+                if (_importBtnBounds.Contains(e.CanvasLocation))
                 {
                     Owner.RecordUndoEvent("SiteReader button clicked");
-                    _previewCloud = _previewCloud == false;
-                    _previewCld(_previewCloud); //return the value to the component
-                    _pvwButtonText = _previewCloud.ToString();
+                    _importCloud = _importCloud == false;
+                    _importAction(_importCloud); //return the value to the component
+                    _importBtnTxt = _importCloud.ToString();
                     Owner.ExpireSolution(true);
                     return GH_ObjectResponse.Handled;
                 }
@@ -260,7 +286,7 @@ namespace SiteReader.UI
         //handling slider and zoom button
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
-            if (e.Button == MouseButtons.Left && !_previewCloud)
+            if (e.Button == MouseButtons.Left && !_importCloud)
             {
                 if (_handleShape.Contains(e.CanvasLocation))
                 {
@@ -321,7 +347,7 @@ namespace SiteReader.UI
 
 
                 /* note sure why I can't access Owner.ExpireLayout() but the below works to refresh the display while NOT expiring the solution
-                 https://discourse.mcneel.com/t/grasshopper-pvwButton-should-i-expire-solution/117368
+                 https://discourse.mcneel.com/t/grasshopper-importBtn-should-i-expire-solution/117368
                  */
                 base.ExpireLayout();
                 sender.Refresh();
@@ -339,7 +365,7 @@ namespace SiteReader.UI
 {
                 _returnSliderVal(_cloudDensity); // return the final value
 
-                // again, we don't want to refresh the solution until the display pvwButton is clicked
+                // again, we don't want to refresh the solution until the display importBtn is clicked
                 base.ExpireLayout();
                 sender.Refresh();
 
