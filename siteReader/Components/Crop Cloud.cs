@@ -58,7 +58,7 @@ namespace siteReader.Components
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no points to crop!");
                 return;
             }
-
+            /*
             var cropMeshes = new List<Mesh>();
             if (!DA.GetDataList(1, cropMeshes)) return;
 
@@ -119,7 +119,7 @@ namespace siteReader.Components
 
 
             DA.SetData(0, cropCloud);
-
+            */
         }
 
         /// <summary>

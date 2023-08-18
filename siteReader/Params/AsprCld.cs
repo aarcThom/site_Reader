@@ -1,24 +1,20 @@
-﻿using Aardvark.Base;
+﻿using Grasshopper.Kernel.Types;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Types;
-using Rhino.DocObjects;
-using Rhino;
 using Rhino.Geometry;
+using siteReader.Methods;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using siteReader.Methods;
+using Rhino.DocObjects;
+using Rhino;
+using Aardvark.Base;
 
 namespace siteReader.Params
 {
     public class AsprCld : GH_GeometricGoo<PointCloud>, IGH_PreviewData, IGH_BakeAwareObject
+
     {
-        //constructors
+        //CONSTRUCTORS--------------------------------------------------------
         public AsprCld(string path)
         {
             _path = path;
@@ -40,7 +36,11 @@ namespace siteReader.Params
             _vlr = cld.vlr.Copy();
             _header = cld.header.Copy();
             _format = cld.pointFormat;
-            _ptMask = cld.ptMask.Copy();
+
+            _intensity = cld.intensity.Copy();
+            _rgb = cld.rgb.Copy();
+            _classification = cld.classification.Copy();
+            _numReturns = cld.numReturns.Copy();
 
             _ptCloud = new PointCloud(cld.ptCloud);
             this.m_value = _ptCloud;
@@ -54,82 +54,60 @@ namespace siteReader.Params
             _vlr = cld.vlr.Copy();
             _header = cld.header.Copy();
             _format = cld.pointFormat;
-            _ptMask = cld.ptMask.Copy();
 
             _ptCloud = transformedCloud;
-            this.m_value = _ptCloud;
-        }
-
-        public AsprCld(PointCloud transformedCloud, AsprCld cld, List<bool> ptMask)
-        {
-            _path = cld.path;
-            _laszip = cld.laszip;
-
-            _vlr = cld.vlr.Copy();
-            _header = cld.header.Copy();
-            _format = cld.pointFormat;
-            _ptMask = ptMask;
-
-            _ptCloud = transformedCloud;
-            this.m_value = _ptCloud;
-        }
-
-        public AsprCld(PointCloud ptCld)
-        {
-            _userRefCld = true;
-            _format = 77; //reserve this format # for user ref'd clouds
-
-            _ptCloud = new PointCloud(ptCld);
             this.m_value = _ptCloud;
         }
 
         public AsprCld()
         {
-            _userRefCld = true;
-            _format = 77; //reserve this format # for user ref'd clouds
-
-            _ptCloud = new PointCloud();
-            this.m_value = _ptCloud;
+            //needed for Rhino ref outs
         }
 
-        //fields
-        private bool _userRefCld = false; //maybe delete this it might cause issues down the road to have user ref'd clouds without ASPR data
+
+        //FIELDS--------------------------------------------------------------
+
+        //aspr / .las properties
         private readonly string _path;
         private readonly Dictionary<string, float> _header;
         private readonly Dictionary<string, string> _vlr;
         private byte _format;
 
+        private List<ushort> _intensity;
+        private List<Color> _rgb;
+        private List<byte> _classification;
+        private List<byte> _numReturns;
+
+        //laszip
         private LASzip.Net.laszip _laszip;
 
+        //geometry
         private PointCloud _ptCloud;
-        private List<bool> _ptMask;
 
         //PROPERTIES---------------------------------------------------------
 
-        //ASPR / .las properties
-
-        public bool userRefCld => _userRefCld; // is the cloud a point cloud referenced from Rhino?
+        //aspr / .las properties
         public string path => _path;
         public Dictionary<string, float> header => _header;
         public Dictionary<string, string> vlr => _vlr;
         public byte pointFormat => _format;
-        
-        
-        
+
+        public List<ushort> intensity => _intensity;
+        public List<Color> rgb => _rgb;
+        public List<byte> classification => _classification;
+        public List<byte> numReturns => _numReturns;
+
         //laszip
         public LASzip.Net.laszip laszip => _laszip;
 
-        //geometry properties
+        //geometry
         public PointCloud ptCloud => _ptCloud;
-        public List<bool> ptMask { get => _ptMask; set => _ptMask = value; }
 
-        //grasshopper options
-        public float displayDensity { get; set; }
-
+        //needed by components
+        public float displayDensity { get; set; } 
 
 
-
-        //INTERFACE METHODS--------------------------------------------------
+        //INTERFACE METHODS---------------------------------------------------------------------------------------
 
         //IGH_PreviewData METHODS
         public void DrawViewportMeshes(GH_PreviewMeshArgs args)
@@ -139,7 +117,8 @@ namespace siteReader.Params
 
         public void DrawViewportWires(GH_PreviewWireArgs args)
         {
-            args.Pipeline.DrawPointCloud(this.m_value, args.Thickness);
+            //removed because it's faster to render in a given component
+            // args.Pipeline.DrawPointCloud(this.m_value, args.Thickness); 
         }
 
         public BoundingBox ClippingBox
@@ -203,11 +182,15 @@ namespace siteReader.Params
             return new AsprCld((PointCloud)duplicate, this);
         }
 
-        //CLOUD METHODS
-        public void GetPointCloud()
+        //CLOUD METHODS----------------------------------------------------
+        public void GetPointCloud(List<Mesh> cropShapes = null, bool inside = false)
         {
-            (_ptCloud, _ptMask) = LasMethods.GetInitialPts(this);
+            (_ptCloud, _intensity, _rgb, _classification, _numReturns) = LasMethods.GetPtCloud(this, displayDensity, cropShapes, inside);
         }
 
+        public void GetPreview()
+        {
+            _ptCloud = LasMethods.GetPreviewCld(this);
+        }
     }
 }

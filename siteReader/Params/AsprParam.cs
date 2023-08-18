@@ -15,8 +15,10 @@ namespace siteReader.Params
     {
 
         //constructor that inherits from the base geometry component class
-        public AsprParam() : base(new GH_InstanceDescription("ASPR Point Cloud", "Cloud", "A point cloud linked with ASPR info", "SiteReader", "Point Clouds"))
+        public AsprParam() : base(new GH_InstanceDescription("ASPR Point Cloud", "Cloud", 
+            "A point cloud linked with ASPR info", "SiteReader", "Point Clouds"))
         {
+            Hidden = true;
         }
 
         public override Guid ComponentGuid => new Guid("{E902C5B7-6B05-4F44-931D-C7ABAFD4F37A}");
@@ -57,11 +59,15 @@ namespace siteReader.Params
 
         public void DrawViewportWires(IGH_PreviewArgs args)
         {
-            Preview_DrawWires(args);
+            // Preview_DrawWires(args); //removed because it's faster to render in a given component
         }
 
         protected override GH_GetterResult Prompt_Plural(ref List<AsprCld> values)
         {
+            // REMOVED BECAUSE I AM GOING TO HIDE THIS PARAMETER AND DON'T
+            // WANT TO CLUTTER THE ASPRCLD CLASS WITH ANOTHER CONSTRUCTOR
+            /*
+
             List<PointCloud> ptClouds;
             var result = LoadPlural(out ptClouds);
 
@@ -70,12 +76,18 @@ namespace siteReader.Params
                 values = ptClouds.Select(pc => new AsprCld(pc)).ToList();
             }
             return result;
+            */
+            values = null;
+            return GH_GetterResult.cancel;
 
         }
 
         //getter for multiple pointclouds
         public GH_GetterResult LoadPlural(out List<PointCloud> ptClouds)
         {
+            // REMOVED BECAUSE I AM GOING TO HIDE THIS PARAMETER AND DON'T
+            // WANT TO CLUTTER THE ASPRCLD CLASS WITH ANOTHER CONSTRUCTOR
+            /*
             var go = new GetObject();
             go.GeometryFilter = ObjectType.PointSet;
 
@@ -99,13 +111,18 @@ namespace siteReader.Params
             }
 
             return GH_GetterResult.success;
+            */
+            ptClouds = null;
+            return GH_GetterResult.cancel;
 
 
         }
 
-        //NEED TO FIX
         protected override GH_GetterResult Prompt_Singular(ref AsprCld value)
         {
+            // REMOVED BECAUSE I AM GOING TO HIDE THIS PARAMETER AND DON'T
+            // WANT TO CLUTTER THE ASPRCLD CLASS WITH ANOTHER CONSTRUCTOR
+            /*
             PointCloud ptCloud;
             var result = LoadSingular(out ptCloud);
 
@@ -114,11 +131,16 @@ namespace siteReader.Params
                 value = new AsprCld(ptCloud);
             }
             return result;
+            */
+            return GH_GetterResult.cancel;
         }
 
 
         public GH_GetterResult LoadSingular(out PointCloud ptCloud)
         {
+            // REMOVED BECAUSE I AM GOING TO HIDE THIS PARAMETER AND DON'T
+            // WANT TO CLUTTER THE ASPRCLD CLASS WITH ANOTHER CONSTRUCTOR
+            /*
             var go = new GetObject();
             go.GeometryFilter = ObjectType.PointSet;
 
@@ -155,6 +177,9 @@ namespace siteReader.Params
 
             }
             return GH_GetterResult.success;
+            */
+            ptCloud = null;
+            return GH_GetterResult.cancel;
         }
     }
 }
