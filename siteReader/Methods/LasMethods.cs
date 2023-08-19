@@ -215,6 +215,10 @@ namespace siteReader.Methods
 
             //cropping stuff if needed
             DMeshAABBTree3 spatial = BuildSpatialTree(crops);
+            if (spatial != null)
+            {
+                spatial.Build();
+            }
 
             int maskIx = 0;
             for (int i = 0; i < pointCount; i++)
@@ -283,7 +287,7 @@ namespace siteReader.Methods
 
         private static DMeshAABBTree3 BuildSpatialTree(List<Mesh> crops)
         {
-            if (crops == null) return null;
+            if (crops.Count == 0) return null;
 
             var cropMesh = new Mesh();
             foreach (Mesh mesh in crops)
@@ -293,7 +297,6 @@ namespace siteReader.Methods
 
             DMesh3 dMesh = Utility.MeshtoDMesh(cropMesh);
             DMeshAABBTree3 spatial = new DMeshAABBTree3(dMesh);
-            spatial.Build();
 
             return spatial;
         }
@@ -307,7 +310,7 @@ namespace siteReader.Methods
 
             int hitCnt = spatial.FindAllHitTriangles(ray);
 
-            if ((hitCnt % 2 != 0 && inside) || (hitCnt % 2 == 0 && !inside))
+            if ((hitCnt % 2) != 0)// && inside) || (hitCnt % 2 == 0 && !inside))
             {
                 return true;
             }

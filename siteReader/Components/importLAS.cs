@@ -29,6 +29,9 @@ namespace siteReader.Components
         //FIELDS
         private string _prevPath = string.Empty;
 
+        private List<Mesh> _cropShapes = new List<Mesh>();
+        private bool _insideCrop = true;
+
 
         private AsprCld _asprCld;
         private List<string> _headerOut;
@@ -45,6 +48,10 @@ namespace siteReader.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("file path", "path", "Path to LAS or LAZ file.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Crop Shape", "Crop", "Provide breps or meshes to crop your cloud upon import.", GH_ParamAccess.list);
+            pManager[1].Optional = true;
+            pManager.AddBooleanParameter("Inside Crop", "InCrp", "If set to true (default), pts will be kept inside the crop shape. " +
+                "False will retain points outside the crop shape.", GH_ParamAccess.item, true);
         }
 
         /// <summary>
@@ -69,6 +76,7 @@ namespace siteReader.Components
             //VARIABLES---------------------------------------
             // Input variables
             string currentPath = string.Empty;
+            
 
 
             //TEST INPUTS-------------------------------------
@@ -88,6 +96,12 @@ namespace siteReader.Components
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You must provide a valid .las or .laz file.");
                 return;
             }
+
+            //crop mesh input
+            if (!DA.GetDataList(1, _cropShapes)) _cropShapes = new List<Mesh>();
+
+            //inside crop
+            DA.GetData(2, ref _insideCrop);
 
 
             //initial import
@@ -168,7 +182,7 @@ namespace siteReader.Components
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_asprCld.ptCloud != null && _importCloud)
+            if (_asprCld != null && _asprCld.ptCloud != null && _importCloud)
             {
                 args.Display.DrawPointCloud(_asprCld.ptCloud, 2);
             }
@@ -201,7 +215,7 @@ namespace siteReader.Components
             if (_asprCld != null && _asprCld.displayDensity != _cloudDensity && _importCloud || overRide)
             {
                 _asprCld.displayDensity = _cloudDensity;
-                _asprCld.GetPointCloud();
+                _asprCld.GetPointCloud(_cropShapes, _insideCrop);
                 da.SetData(2, new AsprCld(_asprCld));
                 RhinoDoc.ActiveDoc.Views.Redraw();
             }

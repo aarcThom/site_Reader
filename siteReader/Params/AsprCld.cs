@@ -183,7 +183,7 @@ namespace siteReader.Params
         }
 
         //CLOUD METHODS----------------------------------------------------
-        public void GetPointCloud(List<Mesh> cropShapes = null, bool inside = false)
+        public void GetPointCloud(List<Mesh> cropShapes, bool inside)
         {
             (_ptCloud, _intensity, _rgb, _classification, _numReturns) = LasMethods.GetPtCloud(this, displayDensity, cropShapes, inside);
         }
