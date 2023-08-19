@@ -333,7 +333,7 @@ namespace siteReader.Methods
             {
                 lz.read_point();
 
-                if (maskIx == 5)
+                if (maskIx == 10)
                 {
 
                     double[] coords = new double[3];
@@ -354,7 +354,7 @@ namespace siteReader.Methods
                 }
 
                 maskIx++;
-                if (maskIx == 10) maskIx = 0;
+                if (maskIx == 20) maskIx = 0;
             }
             lz.close_reader();
             return ptCloud;
