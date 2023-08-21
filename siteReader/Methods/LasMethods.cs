@@ -214,9 +214,19 @@ namespace siteReader.Methods
             List<int> densityMask = GetMaskingPattern(density);
 
             //cropping stuff if needed
-            DMeshAABBTree3 spatial = BuildSpatialTree(crops);
-            if (spatial != null)
+            DMeshAABBTree3 spatial = null;
+
+            if (crops.Count != 0)
             {
+
+                var cropMesh = new Mesh();
+                foreach (Mesh mesh in crops)
+                {
+                    cropMesh.Append(mesh);
+                }
+
+                DMesh3 dMesh = Utility.MeshtoDMesh(cropMesh);
+                spatial = new DMeshAABBTree3(dMesh);
                 spatial.Build();
             }
 
@@ -224,6 +234,7 @@ namespace siteReader.Methods
             for (int i = 0; i < pointCount; i++)
             {
                 lz.read_point();
+                var lsPt = lz.point;
 
                 if (densityMask.Contains(maskIx))
                 {
@@ -231,10 +242,29 @@ namespace siteReader.Methods
                     lz.get_coordinates(coords);
                     var rPoint = new Point3d(coords[0], coords[1], coords[2]);
 
-                    if (spatial == null || PtInsideCrop(spatial, rPoint, inside))
-                    {
-                        var lsPt = lz.point;
+                    //testing if point is inside
+                    bool hit = true;
 
+                    if (spatial != null)
+                    {
+                        var dir = new g3.Vector3d(0, 0, 1);
+                        g3.Vector3d pt = new g3.Vector3d(coords[0], coords[1], coords[2]);
+                        g3.Ray3d ray = new g3.Ray3d(pt, dir);
+
+                        int hitCnt = spatial.FindAllHitTriangles(ray);
+
+                        if (((hitCnt % 2) != 0 && inside) || (hitCnt % 2 == 0 && !inside))
+                        {
+                            hit = true;
+                        }
+                        else
+                        {
+                            hit = false;
+                        }
+                    }
+                    
+                    if (hit == true)
+                    {
                         ptCloud.Add(rPoint);
                         intensity.Add(lsPt.intensity);
                         if (hasRGB) rgb.Add(Utility.ConvertRGB(lsPt.rgb));
