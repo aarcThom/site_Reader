@@ -29,7 +29,7 @@ namespace siteReader.Components
         //FIELDS
         private string _prevPath = string.Empty;
 
-        private List<Mesh> _cropShapes = new List<Mesh>();
+        private List<Mesh> _cropShapes;
         private bool _insideCrop = true;
 
 
@@ -97,11 +97,17 @@ namespace siteReader.Components
                 return;
             }
 
+            List<Mesh> cropShps = new List<Mesh>();
             //crop mesh input
-            if (!DA.GetDataList(1, _cropShapes)) _cropShapes = new List<Mesh>();
+            if(DA.GetDataList(1, cropShps))
+            {
+                _cropShapes = cropShps;
+            }
+
 
             //inside crop
             DA.GetData(2, ref _insideCrop);
+
 
 
             //initial import

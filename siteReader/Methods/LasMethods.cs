@@ -224,11 +224,17 @@ namespace siteReader.Methods
                 {
                     cropMesh.Append(mesh);
                 }
+                cropMesh.Normals.ComputeNormals();
+                cropMesh.Compact();
+                    
 
                 DMesh3 dMesh = Utility.MeshtoDMesh(cropMesh);
                 spatial = new DMeshAABBTree3(dMesh);
                 spatial.Build();
+
             }
+
+            var dir = new g3.Vector3d(0, 0, 1); //intersection vector if needed
 
             int maskIx = 0;
             for (int i = 0; i < pointCount; i++)
@@ -247,16 +253,16 @@ namespace siteReader.Methods
 
                     if (spatial != null)
                     {
-                        var dir = new g3.Vector3d(0, 0, 1);
+                        
                         g3.Vector3d pt = new g3.Vector3d(coords[0], coords[1], coords[2]);
                         g3.Ray3d ray = new g3.Ray3d(pt, dir);
 
                         int hitCnt = spatial.FindAllHitTriangles(ray);
 
-                        if (((hitCnt % 2) != 0 && inside) || (hitCnt % 2 == 0 && !inside))
+                        if ((hitCnt % 2 != 0 && inside) || (hitCnt % 2 == 0 && !inside))
                         {
                             hit = true;
-                        }
+                        } 
                         else
                         {
                             hit = false;
