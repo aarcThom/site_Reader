@@ -214,25 +214,7 @@ namespace siteReader.Methods
             List<int> densityMask = GetMaskingPattern(density);
 
             //cropping stuff if needed
-            DMeshAABBTree3 spatial = null;
-
-            if (crops.Count != 0)
-            {
-
-                var cropMesh = new Mesh();
-                foreach (Mesh mesh in crops)
-                {
-                    cropMesh.Append(mesh);
-                }
-                cropMesh.Normals.ComputeNormals();
-                cropMesh.Compact();
-                    
-
-                DMesh3 dMesh = Utility.MeshtoDMesh(cropMesh);
-                spatial = new DMeshAABBTree3(dMesh);
-                spatial.Build();
-
-            }
+            DMeshAABBTree3 spatial = BuildSpatialTree(crops);
 
             var dir = new g3.Vector3d(0, 0, 1); //intersection vector if needed
 
@@ -248,26 +230,9 @@ namespace siteReader.Methods
                     lz.get_coordinates(coords);
                     var rPoint = new Point3d(coords[0], coords[1], coords[2]);
 
+
                     //testing if point is inside
-                    bool hit = true;
-
-                    if (spatial != null)
-                    {
-                        
-                        g3.Vector3d pt = new g3.Vector3d(coords[0], coords[1], coords[2]);
-                        g3.Ray3d ray = new g3.Ray3d(pt, dir);
-
-                        int hitCnt = spatial.FindAllHitTriangles(ray);
-
-                        if ((hitCnt % 2 != 0 && inside) || (hitCnt % 2 == 0 && !inside))
-                        {
-                            hit = true;
-                        } 
-                        else
-                        {
-                            hit = false;
-                        }
-                    }
+                    bool hit = spatial != null ? PtInsideCrop(spatial, rPoint, inside) : true;
                     
                     if (hit == true)
                     {
@@ -333,6 +298,7 @@ namespace siteReader.Methods
 
             DMesh3 dMesh = Utility.MeshtoDMesh(cropMesh);
             DMeshAABBTree3 spatial = new DMeshAABBTree3(dMesh);
+            spatial.Build();
 
             return spatial;
         }
@@ -346,7 +312,7 @@ namespace siteReader.Methods
 
             int hitCnt = spatial.FindAllHitTriangles(ray);
 
-            if ((hitCnt % 2) != 0)// && inside) || (hitCnt % 2 == 0 && !inside))
+            if ((hitCnt % 2 != 0 && inside) || (hitCnt % 2 == 0 && !inside))
             {
                 return true;
             }
