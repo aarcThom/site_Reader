@@ -155,7 +155,7 @@ namespace siteReader.Components
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_asprCld.ptCloud != null && _importCloud)
+            if (_asprCld != null && _asprCld.ptCloud != null && _importCloud)
             {
                 args.Display.DrawPointCloud(_asprCld.ptCloud, 2);
             }

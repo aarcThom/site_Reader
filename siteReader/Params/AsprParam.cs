@@ -32,6 +32,8 @@ namespace siteReader.Params
 
         public bool IsBakeCapable => !m_data.IsEmpty;
 
+        
+
         public void BakeGeometry(RhinoDoc doc, List<Guid> obj_ids)
         {
             var defaultAttributes = doc.CreateDefaultAttributes();

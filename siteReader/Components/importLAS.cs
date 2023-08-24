@@ -30,7 +30,9 @@ namespace siteReader.Components
         private string _prevPath = string.Empty;
 
         private List<Mesh> _cropShapes;
+        private List<Mesh> _prevCropShapes;
         private bool _insideCrop = true;
+        private bool _prevInside = true;
 
 
         private AsprCld _asprCld;
@@ -76,12 +78,23 @@ namespace siteReader.Components
             //VARIABLES---------------------------------------
             // Input variables
             string currentPath = string.Empty;
-            
+
 
 
             //TEST INPUTS-------------------------------------
             // Is input empty?
-            if (!DA.GetData(0, ref currentPath)) return;
+            if (!DA.GetData(0, ref currentPath))
+            {
+
+                // I'm not sure if there is a way to clear the cloud once file is disconnected
+                // I think that the component will not run since DAparam 01 is not optional...
+                if (_asprCld != null)
+                {
+                    _asprCld = null; //clear the cloud if need be (doesn't work)
+                    _prevPath = String.Empty;
+                } 
+                return;
+            } 
 
             // Test if file exists
             if (!File.Exists(currentPath))
@@ -129,6 +142,12 @@ namespace siteReader.Components
                 {
                     _asprCld.displayDensity = 2; // setting the cloud density above 1 so that the getCloud method triggers on user button click
                 }
+            }
+
+            //user updates cropshape or inside bool
+            if ((_prevCropShapes != _cropShapes || _prevInside != _insideCrop) && _importCloud)
+            {
+                GetCloud(DA, overRide: true);
             }
 
             //user updates density
@@ -224,6 +243,10 @@ namespace siteReader.Components
                 _asprCld.GetPointCloud(_cropShapes, _insideCrop);
                 da.SetData(2, new AsprCld(_asprCld));
                 RhinoDoc.ActiveDoc.Views.Redraw();
+
+                //update the crop shapes and bool check
+                _prevCropShapes = _cropShapes;
+                _prevInside = _insideCrop;
             }
         }
     }

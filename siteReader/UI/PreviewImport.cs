@@ -118,7 +118,6 @@ namespace SiteReader.UI
             {
                 //declare the pens / brushes / pallets we will need to draw the custom objects - defaults for blank / message levels
                 Pen outLine = CompStyles.BlankOutline;
-                GH_Palette palette = GH_Palette.Normal;
 
                 //use a switch statement to retrieve the proper pens / brushes from our CompColors class
                 switch (Owner.RuntimeMessageLevel)
@@ -126,13 +125,11 @@ namespace SiteReader.UI
                     case GH_RuntimeMessageLevel.Warning:
                         // assign warning values
                         outLine = CompStyles.WarnOutline;
-                        palette = GH_Palette.Warning;
                         break;
 
                     case GH_RuntimeMessageLevel.Error:
                         // assign warning values
                         outLine = CompStyles.ErrorOutline;
-                        palette = GH_Palette.Error;
                         break;
                 }
 

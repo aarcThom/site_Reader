@@ -288,7 +288,7 @@ namespace siteReader.Methods
 
         private static DMeshAABBTree3 BuildSpatialTree(List<Mesh> crops)
         {
-            if (crops.Count == 0) return null;
+            if (crops == null || crops.Count == 0) return null;
 
             var cropMesh = new Mesh();
             foreach (Mesh mesh in crops)
@@ -363,6 +363,22 @@ namespace siteReader.Methods
             }
             lz.close_reader();
             return ptCloud;
+        }
+
+
+        public static List<Color> formatIntensity(List<ushort> itns, List<Color> clrs)
+        {
+            List<Color> result = new List<Color>();
+
+            ushort maxVal = itns.Max();
+
+            foreach(var val in itns)
+            {
+                int mapped = 255 * val / maxVal;
+                result.Add(clrs[mapped]);
+            }
+
+            return result;
         }
     }
 }

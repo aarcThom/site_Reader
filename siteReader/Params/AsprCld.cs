@@ -192,5 +192,15 @@ namespace siteReader.Params
         {
             _ptCloud = LasMethods.GetPreviewCld(this);
         }
+
+        public void ApplyColors(List<Color> colors)
+        {
+            int colorCount = 0;
+            foreach(var pt in _ptCloud)
+            {
+                pt.Color = colors[colorCount];
+                colorCount++;
+            }
+        }
     }
 }
