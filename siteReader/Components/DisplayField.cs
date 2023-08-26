@@ -32,6 +32,7 @@ namespace siteReader.Components
 
         //FIELDS ------------------------------------------------------------------
         private AsprCld _asprCld;
+        private int _selectedField = 0;
 
 
         /// <summary>
@@ -154,10 +155,25 @@ namespace siteReader.Components
             }
         }
 
+
+        //PREVIEW OVERRIDES AND UI METHODS ---------------------------------------------------
+
+        //methods for passing values from UI controller
+        public void SelectField(int selection)
+        {
+            _selectedField = selection;
+        }
+
+        //This region overrides the typical component layout
+        public override void CreateAttributes()
+        {
+            m_attributes = new SiteReader.UI.DropDown(this, SelectField);
+        }
+
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_asprCld != null && _asprCld.ptCloud != null )
+            if (_asprCld != null && _asprCld.ptCloud != null)
             {
                 args.Display.DrawPointCloud(_asprCld.ptCloud, 2);
             }
