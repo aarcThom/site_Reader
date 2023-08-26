@@ -104,7 +104,7 @@ namespace SiteReader.UI
             Bounds = componentRec;
 
             //here we can add extra stuff to the layout-------------------------------------------
-            _secondCapsuleBounds = new RectangleF(left, bottom, width, extraHeight);
+            //_secondCapsuleBounds = new RectangleF(left, bottom, width, extraHeight);
 
             _sliderLegendBounds = new RectangleF(left, bottom + horizSpacer, width, 10);
             _sliderLegendBounds.Inflate(-sideSpacer * 2, 0);
@@ -194,9 +194,9 @@ namespace SiteReader.UI
                 //render custom elements----------------------------------------------------------
 
                 //secondary capsule
-                GH_Capsule secondCap = GH_Capsule.CreateCapsule(_secondCapsuleBounds, palette);
-                secondCap.Render(graphics, Selected, Owner.Locked, false);
-                secondCap.Dispose();
+                //GH_Capsule secondCap = GH_Capsule.CreateCapsule(_secondCapsuleBounds, palette);
+                //secondCap.Render(graphics, Selected, Owner.Locked, false);
+                //secondCap.Dispose();
 
                 //font for legends and slider number value
                 Font font = GH_FontServer.Small;
