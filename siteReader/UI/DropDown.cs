@@ -14,6 +14,8 @@ using Grasshopper.Kernel.Attributes;
 using Eto.Forms;
 using Rhino.UI;
 using MouseButtons = System.Windows.Forms.MouseButtons;
+using siteReader.Methods;
+using siteReader.UI;
 
 namespace SiteReader.UI
 {
@@ -40,7 +42,14 @@ namespace SiteReader.UI
         private Point _ptLeft;
         private Point _ptRight;
 
-        private string _fieldLegendTxt = "LIDAR field to display";
+        private RectangleF _intensButBnds;
+        private RectangleF _rgbButBnds;
+        private RectangleF _classButBnds;
+        private RectangleF _returnsButBnds;
+        private RectangleF[] _radioButtons;
+
+
+    private string _fieldLegendTxt = "LIDAR field to display";
 
 
         protected override void Layout()
@@ -63,7 +72,7 @@ namespace SiteReader.UI
 
             const int horizSpacer = 10;
             const int sideSpacer = 2;
-            const int extraHeight = 83;
+            const int extraHeight = 95;
 
             //here we can modify the bounds
             componentRec.Height += extraHeight; // for example
@@ -81,6 +90,15 @@ namespace SiteReader.UI
             //the field legend
             _fieldLegendBounds = new RectangleF(left, bottom + horizSpacer, width, 10);
             _fieldLegendBounds.Inflate(-sideSpacer * 2, 0);
+
+            // the buttons for the fields
+            _intensButBnds = new RectangleF(left + 8, _fieldLegendBounds.Bottom + horizSpacer, 7, 7);
+            _rgbButBnds = new RectangleF(left + 8, _intensButBnds.Bottom + horizSpacer, 7, 7);
+            _classButBnds = new RectangleF(left + 8, _rgbButBnds.Bottom + horizSpacer, 7, 7);
+            _returnsButBnds = new RectangleF(left + 8, _classButBnds.Bottom + horizSpacer, 7, 7);
+            _radioButtons = new[] { _intensButBnds, _rgbButBnds, _classButBnds, _returnsButBnds };
+
+
 
         }
 
@@ -121,6 +139,11 @@ namespace SiteReader.UI
 
                 //field legend 
                 graphics.DrawString(_fieldLegendTxt, font, Brushes.Black, _fieldLegendBounds, GH_TextRenderingConstants.NearCenter);
+
+                //drawings the radio buttons
+                graphics.FillRectangles(CompStyles.RadioUnclicked, _radioButtons);
+                graphics.DrawRectangles(outLine, _radioButtons);
+                
 
             }
 
