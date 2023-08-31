@@ -24,6 +24,7 @@ namespace siteReader.UI
         public static Pen ErrorOutline => new Pen(ErrorOutlineCol) { EndCap = System.Drawing.Drawing2D.LineCap.Round };
         public static Brush HandleFill => new SolidBrush(Color.AliceBlue);
         public static Brush RadioUnclicked => new SolidBrush(Color.AliceBlue);
+        public static Brush RadioClicked => new SolidBrush(Color.Black);
 
     }
 }

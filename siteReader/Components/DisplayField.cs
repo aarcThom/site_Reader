@@ -32,7 +32,8 @@ namespace siteReader.Components
 
         //FIELDS ------------------------------------------------------------------
         private AsprCld _asprCld;
-        private int _selectedField = 0;
+        private int _selectedField = -1;
+        private List<Color> _colors;
 
 
         /// <summary>
@@ -44,7 +45,6 @@ namespace siteReader.Components
            pManager.AddColourParameter("Gradient", "Grad", "The color gradient that will be used to visualize point cloud fields. " +
                 "Note: if you edit the the gradient component inputs, or replace the auto generated gradient component you may get slower compute times and strange results." +
                 "Absolutely feel free to set your own color scheme though!", GH_ParamAccess.list);
-            pManager.AddIntegerParameter("x", "x", "x", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -126,18 +126,14 @@ namespace siteReader.Components
             }
 
             List<Color> colors = new List<Color>();
-            if (!DA.GetDataList(1, colors)) return;
-
-            int choice = 0;
-            if (!DA.GetData(2, ref choice)) return;
-
-            List<Color> newVColors;
-            if (choice == 0)
+            if (!DA.GetDataList(1, colors)) 
             {
-                newVColors = LasMethods.formatIntensity(cld.intensity, colors);
-                cld.ApplyColors(newVColors);
+                return;
             }
-
+            else
+            {
+                _colors = colors;
+            }
 
 
         }
@@ -161,13 +157,38 @@ namespace siteReader.Components
         //methods for passing values from UI controller
         public void SelectField(int selection)
         {
-            _selectedField = selection;
+
+            List<Color> newVColors;
+
+            switch (selection)
+            {
+                case 0:
+                    newVColors = LasMethods.uShortToColor(_asprCld.intensity, _colors);
+                    _asprCld.ApplyColors(newVColors);
+                    break;
+
+                case 1:
+                    newVColors = _asprCld.rgb;
+                    _asprCld.ApplyColors(newVColors);
+                    break;
+
+                case 2:
+                    newVColors = LasMethods.byteToColor(_asprCld.classification, _colors);
+                    _asprCld.ApplyColors(newVColors);
+                    break;
+
+                case 3:
+                    newVColors = LasMethods.byteToColor(_asprCld.numReturns, _colors);
+                    _asprCld.ApplyColors(newVColors);
+                    break;
+            }
+
         }
 
         //This region overrides the typical component layout
         public override void CreateAttributes()
         {
-            m_attributes = new SiteReader.UI.DropDown(this, SelectField);
+            m_attributes = new SiteReader.UI.RadioBoxes(this, SelectField);
         }
 
         //drawing the point cloud if preview is enabled

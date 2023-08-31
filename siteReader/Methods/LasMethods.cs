@@ -366,13 +366,28 @@ namespace siteReader.Methods
         }
 
 
-        public static List<Color> formatIntensity(List<ushort> itns, List<Color> clrs)
+        public static List<Color> uShortToColor(List<ushort> itns, List<Color> clrs)
         {
             List<Color> result = new List<Color>();
 
             ushort maxVal = itns.Max();
 
             foreach(var val in itns)
+            {
+                int mapped = 255 * val / maxVal;
+                result.Add(clrs[mapped]);
+            }
+
+            return result;
+        }
+
+        public static List<Color> byteToColor(List<byte> itns, List<Color> clrs)
+        {
+            List<Color> result = new List<Color>();
+
+            byte maxVal = itns.Max();
+
+            foreach (var val in itns)
             {
                 int mapped = 255 * val / maxVal;
                 result.Add(clrs[mapped]);

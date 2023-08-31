@@ -19,7 +19,7 @@ using siteReader.UI;
 
 namespace SiteReader.UI
 {
-    public class DropDown : GH_ComponentAttributes
+    public class RadioBoxes : GH_ComponentAttributes
     {
 
         // note to self: in C# use Action when you return void, and Func when you return value(s)
@@ -27,7 +27,7 @@ namespace SiteReader.UI
          https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/base
          */
 
-        public DropDown(GH_Component owner, Action<int> selectField) : base(owner)
+        public RadioBoxes(GH_Component owner, Action<int> selectField) : base(owner)
         {
             _selectField = selectField;
         }
@@ -43,10 +43,22 @@ namespace SiteReader.UI
         private Point _ptRight;
 
         private RectangleF _intensButBnds;
+        private RectangleF _intensLgdBnds;
+        private RectangleF _intensSelect;
         private RectangleF _rgbButBnds;
+        private RectangleF _rgbLgdBnds;
+        private RectangleF _rgbSelect;
         private RectangleF _classButBnds;
+        private RectangleF _classLgdBnds;
+        private RectangleF _classSelect;
         private RectangleF _returnsButBnds;
+        private RectangleF _returnsLgdBnds;
+        private RectangleF _returnsSelect;
+
         private RectangleF[] _radioButtons;
+        private RectangleF[] _radioSelects;
+
+        private int _chosenField = -1; // what field the user picks
 
 
     private string _fieldLegendTxt = "LIDAR field to display";
@@ -98,6 +110,24 @@ namespace SiteReader.UI
             _returnsButBnds = new RectangleF(left + 8, _classButBnds.Bottom + horizSpacer, 7, 7);
             _radioButtons = new[] { _intensButBnds, _rgbButBnds, _classButBnds, _returnsButBnds };
 
+            // the selections for the fields
+            _intensSelect = _intensButBnds;
+            _intensSelect.Inflate(-1, -1);
+            _rgbSelect = _rgbButBnds;
+            _rgbSelect.Inflate(-1, -1);
+            _classSelect = _classButBnds;
+            _classSelect.Inflate(-1, -1);
+            _returnsSelect = _returnsButBnds;
+            _returnsSelect.Inflate(-1, -1);
+
+            _radioSelects = new[] { _intensSelect, _rgbSelect, _classSelect, _returnsSelect }; 
+
+            // the legends for the fields
+            _intensLgdBnds = new RectangleF(_intensButBnds.Right + 8, _intensButBnds.Top - 1, 100, _intensButBnds.Height + 2);
+            _rgbLgdBnds = new RectangleF(_rgbButBnds.Right + 8, _rgbButBnds.Top - 1, 100, _rgbButBnds.Height + 2);
+            _classLgdBnds = new RectangleF(_classButBnds.Right + 8, _classButBnds.Top - 1, 100, _classButBnds.Height + 2);
+            _returnsLgdBnds = new RectangleF(_returnsButBnds.Right + 8, _returnsButBnds.Top - 1, 100, _returnsButBnds.Height + 2);
+
 
 
         }
@@ -143,10 +173,47 @@ namespace SiteReader.UI
                 //drawings the radio buttons
                 graphics.FillRectangles(CompStyles.RadioUnclicked, _radioButtons);
                 graphics.DrawRectangles(outLine, _radioButtons);
+
+                //drawing the clicked radion buttons if selected
+                if (_chosenField >= 0)
+                {
+                    var clickRec = new[] { _radioSelects[_chosenField] };
+                    graphics.FillRectangles(CompStyles.RadioClicked, clickRec);
+                }
+
                 
+
+                //drawing the button legends
+                graphics.DrawString("Intensity", font, Brushes.Black, _intensLgdBnds, GH_TextRenderingConstants.NearCenter);
+                graphics.DrawString("RGB", font, Brushes.Black, _rgbLgdBnds, GH_TextRenderingConstants.NearCenter);
+                graphics.DrawString("Classification", font, Brushes.Black, _classLgdBnds, GH_TextRenderingConstants.NearCenter);
+                graphics.DrawString("Number of Returns", font, Brushes.Black, _returnsLgdBnds, GH_TextRenderingConstants.NearCenter);
+
 
             }
 
+        }
+
+        public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                for (int i = 0; i < _radioButtons.Length; i++)
+                {
+                    if (_radioButtons[i].Contains(e.CanvasLocation))
+                    {
+                        Owner.RecordUndoEvent("Site reader button clicked");
+                        _chosenField = i;
+                        _selectField(_chosenField);
+
+                        return GH_ObjectResponse.Handled;
+                    }
+                }
+            }
+            
+            
+            
+            return base.RespondToMouseDown(sender, e);
         }
 
     }
