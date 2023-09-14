@@ -372,11 +372,22 @@ namespace siteReader.Methods
 
             ushort maxVal = itns.Max();
 
-            foreach(var val in itns)
+            if (maxVal > 0)
             {
-                int mapped = 255 * val / maxVal;
-                result.Add(clrs[mapped]);
+                foreach (var val in itns)
+                {
+                    int mapped = 255 * val / maxVal;
+                    result.Add(clrs[mapped]);
+                }
             }
+            else
+            {
+                foreach(var val in itns)
+                {
+                    result.Add(Color.Black);
+                }
+            }
+            
 
             return result;
         }
@@ -387,11 +398,22 @@ namespace siteReader.Methods
 
             byte maxVal = itns.Max();
 
-            foreach (var val in itns)
+            if (maxVal > 0)
             {
-                int mapped = 255 * val / maxVal;
-                result.Add(clrs[mapped]);
+                foreach (var val in itns)
+                {
+                    int mapped = 255 * val / maxVal;
+                    result.Add(clrs[mapped]);
+                }
             }
+            else
+            {
+                foreach (var val in itns)
+                {
+                    result.Add(Color.Black);
+                }
+            }
+            
 
             return result;
         }

@@ -61,7 +61,7 @@ namespace siteReader.Params
 
         public void DrawViewportWires(IGH_PreviewArgs args)
         {
-            // Preview_DrawWires(args); //removed because it's faster to render in a given component
+            //Preview_DrawWires(args); //removed because it's faster to render in a given component
         }
 
         protected override GH_GetterResult Prompt_Plural(ref List<AsprCld> values)
