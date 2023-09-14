@@ -117,8 +117,7 @@ namespace siteReader.Params
 
         public void DrawViewportWires(GH_PreviewWireArgs args)
         {
-            //removed because it's faster to render in a given component
-            // args.Pipeline.DrawPointCloud(this.m_value, args.Thickness); 
+            args.Pipeline.DrawPointCloud(this.m_value, args.Thickness); 
         }
 
         public BoundingBox ClippingBox

@@ -10,6 +10,7 @@ using Rhino.Geometry;
 using siteReader.Methods;
 using siteReader.Params;
 using System.Drawing;
+using Aardvark.Base;
 
 namespace siteReader.Components
 {
@@ -32,8 +33,10 @@ namespace siteReader.Components
 
         //FIELDS ------------------------------------------------------------------
         private AsprCld _asprCld;
+        private AsprCld _prevCld;
         private int _selectedField = -1;
         private List<Color> _colors;
+        private List<Color> _prevColors;
 
 
         /// <summary>
@@ -113,16 +116,24 @@ namespace siteReader.Components
             // GET INPUTS ---------------------------------------------------------------------------
 
             AsprCld cld = new AsprCld();
-            if (!DA.GetData(0, ref cld)) return;
+            if (!DA.GetData(0, ref cld)) 
+            {
+                return;
+            } 
 
             else if (cld.ptCloud == null || cld.ptCloud.Count == 0)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no points to color");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no points");
                 return;
             }
             else
             {
-                _asprCld = cld;
+                if (_asprCld == null || _prevCld != _asprCld)
+                {
+                    _asprCld = new AsprCld(cld);
+                    _prevCld = _asprCld;
+                }
+                
             }
 
             List<Color> colors = new List<Color>();
@@ -133,6 +144,12 @@ namespace siteReader.Components
             else
             {
                 _colors = colors;
+            }
+
+            // checking if the colors have been updated
+            if (_prevColors != null && _selectedField != -1 && !_colors.SequenceEqual(_prevColors))
+            {
+                SelectField(_selectedField); 
             }
 
 
@@ -159,6 +176,7 @@ namespace siteReader.Components
         {
 
             List<Color> newVColors;
+            _selectedField = selection;
 
             switch (selection)
             {
@@ -182,6 +200,9 @@ namespace siteReader.Components
                     _asprCld.ApplyColors(newVColors);
                     break;
             }
+
+            _prevColors = _colors;
+            ExpirePreview(true);
 
         }
 

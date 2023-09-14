@@ -206,13 +206,18 @@ namespace SiteReader.UI
                         _chosenField = i;
                         _selectField(_chosenField);
 
+                        /* note sure why I can't access Owner.ExpireLayout() but the below works to refresh the display while NOT expiring the solution
+                        https://discourse.mcneel.com/t/grasshopper-importBtn-should-i-expire-solution/117368
+                        */
+                        base.ExpireLayout();
+                        sender.Refresh();
+
                         return GH_ObjectResponse.Handled;
                     }
                 }
             }
-            
-            
-            
+
+
             return base.RespondToMouseDown(sender, e);
         }
 
