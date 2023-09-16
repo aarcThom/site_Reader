@@ -14,7 +14,7 @@ namespace siteReader.Components
         /// 
 
         public ComponentTemplate()
-          : base("ComponentTemplate", "Nickname",
+          : base("ComponentName", "Nickname",
               "Description", "Subcategory")
         {
         }

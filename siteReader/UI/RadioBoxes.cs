@@ -15,13 +15,34 @@ using Eto.Forms;
 using Rhino.UI;
 using MouseButtons = System.Windows.Forms.MouseButtons;
 using siteReader.Methods;
-using siteReader.UI;
+using siteReader.UI.features;
 
 namespace SiteReader.UI
 {
     public class RadioBoxes : GH_ComponentAttributes
     {
 
+        //FIELDS -----------------------------------------------------------------------------------------------
+
+        //return values
+        private readonly Action<int> _selectField;
+
+        //rectangles and pts for layouts
+        private RectangleF _fieldLegendBounds;
+        private Point _ptLeft;
+        private Point _ptRight;
+
+        private int _chosenField = -1; // what field the user picks
+
+        private string _fieldLegendTxt = "LIDAR field to display";
+
+        // the selections
+        private string[] _fields =new string[4]{ "Intensity", "RGB", "Classification", "Number of Returns" };
+
+        //the radiorectangles for buttons
+        private RadioRectangles _radRecs;
+
+        //CONSTRUCTOR -------------------------------------------------------------------------------------------
         // note to self: in C# use Action when you return void, and Func when you return value(s)
         /* documentation on base:
          https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/base
@@ -32,37 +53,6 @@ namespace SiteReader.UI
             _selectField = selectField;
         }
 
-        //FIELDS ------------------------------------------------------------------
-
-        //return values
-        private readonly Action<int> _selectField;
-
-        //rectangles and pts for layouts
-        private RectangleF _fieldLegendBounds;
-        private Point _ptLeft;
-        private Point _ptRight;
-
-        private RectangleF _intensButBnds;
-        private RectangleF _intensLgdBnds;
-        private RectangleF _intensSelect;
-        private RectangleF _rgbButBnds;
-        private RectangleF _rgbLgdBnds;
-        private RectangleF _rgbSelect;
-        private RectangleF _classButBnds;
-        private RectangleF _classLgdBnds;
-        private RectangleF _classSelect;
-        private RectangleF _returnsButBnds;
-        private RectangleF _returnsLgdBnds;
-        private RectangleF _returnsSelect;
-
-        private RectangleF[] _radioButtons;
-        private RectangleF[] _radioSelects;
-
-        private int _chosenField = -1; // what field the user picks
-
-
-    private string _fieldLegendTxt = "LIDAR field to display";
-
 
         protected override void Layout()
         {
@@ -71,18 +61,16 @@ namespace SiteReader.UI
 
             //saving the original bounds to refer to in custom layout
             var left = componentRec.Left;
-            var top = componentRec.Top;
             var right = componentRec.Right;
             var bottom = componentRec.Bottom;
             var width = componentRec.Width;
-            var height = componentRec.Height;
 
             //useful layout variables like spacers, etc.
             /* docs on constants
              https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/constants
              */
 
-            const int horizSpacer = 10;
+            const int vertSpace = 10;
             const int sideSpacer = 2;
             const int extraHeight = 95;
 
@@ -96,39 +84,15 @@ namespace SiteReader.UI
 
             //points for divider lines
 
-            _ptLeft = new Point(left + sideSpacer, bottom + horizSpacer / 2);
-            _ptRight = new Point(right - sideSpacer, bottom + horizSpacer / 2);
+            _ptLeft = new Point(left + sideSpacer, bottom + vertSpace / 2);
+            _ptRight = new Point(right - sideSpacer, bottom + vertSpace / 2);
 
             //the field legend
-            _fieldLegendBounds = new RectangleF(left, bottom + horizSpacer, width, 10);
+            _fieldLegendBounds = new RectangleF(left, bottom + vertSpace, width, 10);
             _fieldLegendBounds.Inflate(-sideSpacer * 2, 0);
 
-            // the buttons for the fields
-            _intensButBnds = new RectangleF(left + 8, _fieldLegendBounds.Bottom + horizSpacer, 7, 7);
-            _rgbButBnds = new RectangleF(left + 8, _intensButBnds.Bottom + horizSpacer, 7, 7);
-            _classButBnds = new RectangleF(left + 8, _rgbButBnds.Bottom + horizSpacer, 7, 7);
-            _returnsButBnds = new RectangleF(left + 8, _classButBnds.Bottom + horizSpacer, 7, 7);
-            _radioButtons = new[] { _intensButBnds, _rgbButBnds, _classButBnds, _returnsButBnds };
-
-            // the selections for the fields
-            _intensSelect = _intensButBnds;
-            _intensSelect.Inflate(-1, -1);
-            _rgbSelect = _rgbButBnds;
-            _rgbSelect.Inflate(-1, -1);
-            _classSelect = _classButBnds;
-            _classSelect.Inflate(-1, -1);
-            _returnsSelect = _returnsButBnds;
-            _returnsSelect.Inflate(-1, -1);
-
-            _radioSelects = new[] { _intensSelect, _rgbSelect, _classSelect, _returnsSelect }; 
-
-            // the legends for the fields
-            _intensLgdBnds = new RectangleF(_intensButBnds.Right + 8, _intensButBnds.Top - 1, 100, _intensButBnds.Height + 2);
-            _rgbLgdBnds = new RectangleF(_rgbButBnds.Right + 8, _rgbButBnds.Top - 1, 100, _rgbButBnds.Height + 2);
-            _classLgdBnds = new RectangleF(_classButBnds.Right + 8, _classButBnds.Top - 1, 100, _classButBnds.Height + 2);
-            _returnsLgdBnds = new RectangleF(_returnsButBnds.Right + 8, _returnsButBnds.Top - 1, 100, _returnsButBnds.Height + 2);
-
-
+            //the radio buttons
+            _radRecs = new RadioRectangles(componentRec, _fields, 8, vertSpace, _fieldLegendBounds.Bottom);
 
         }
 
@@ -171,36 +135,35 @@ namespace SiteReader.UI
                 graphics.DrawString(_fieldLegendTxt, font, Brushes.Black, _fieldLegendBounds, GH_TextRenderingConstants.NearCenter);
 
                 //drawings the radio buttons
-                graphics.FillRectangles(CompStyles.RadioUnclicked, _radioButtons);
-                graphics.DrawRectangles(outLine, _radioButtons);
+                graphics.FillRectangles(CompStyles.RadioUnclicked, _radRecs.Buttons);
+                graphics.DrawRectangles(outLine, _radRecs.Buttons);
 
                 //drawing the clicked radion buttons if selected
                 if (_chosenField >= 0)
                 {
-                    var clickRec = new[] { _radioSelects[_chosenField] };
+                    var clickRec = new[] { _radRecs.Selectors[_chosenField] };
                     graphics.FillRectangles(CompStyles.RadioClicked, clickRec);
                 }
 
-                
-
                 //drawing the button legends
-                graphics.DrawString("Intensity", font, Brushes.Black, _intensLgdBnds, GH_TextRenderingConstants.NearCenter);
-                graphics.DrawString("RGB", font, Brushes.Black, _rgbLgdBnds, GH_TextRenderingConstants.NearCenter);
-                graphics.DrawString("Classification", font, Brushes.Black, _classLgdBnds, GH_TextRenderingConstants.NearCenter);
-                graphics.DrawString("Number of Returns", font, Brushes.Black, _returnsLgdBnds, GH_TextRenderingConstants.NearCenter);
+                for (int i = 0; i < _fields.Length; i++)
+                {
+                    var text = _fields[i];
+                    var rec = _radRecs.Legends[i];
 
-
+                    graphics.DrawString(text, font, Brushes.Black, rec, GH_TextRenderingConstants.NearCenter);
+                }
             }
 
         }
 
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
-            if (e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left && Owner.RuntimeMessageLevel == GH_RuntimeMessageLevel.Blank)
             {
-                for (int i = 0; i < _radioButtons.Length; i++)
+                for (int i = 0; i < _radRecs.Buttons.Length; i++)
                 {
-                    if (_radioButtons[i].Contains(e.CanvasLocation))
+                    if (_radRecs.Buttons[i].Contains(e.CanvasLocation))
                     {
                         Owner.RecordUndoEvent("Site reader button clicked");
                         _chosenField = i;

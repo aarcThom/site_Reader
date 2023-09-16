@@ -7,6 +7,10 @@
     <Description>Description of siteReader</Description>
     <TargetExt>.gha</TargetExt>
   </PropertyGroup>
+	
+  <ItemGroup>
+    <Compile Remove="Components\ComponentTemplate.cs" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Aardvark.Data.Points.LasZip" Version="5.2.25" />

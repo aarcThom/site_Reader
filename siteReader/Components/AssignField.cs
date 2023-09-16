@@ -1,64 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Grasshopper;
-using Grasshopper.GUI.Gradient;
+
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
-using siteReader.Methods;
-using siteReader.Params;
 using System.Drawing;
-using Aardvark.Base;
+using siteReader.Params;
+using System.Linq;
+using siteReader.Methods;
 
 namespace siteReader.Components
 {
-    public class DisplayField : GH_Component
+    public class AssignField : CloudBase
     {
         /// NOTE: SEE https://james-ramsden.com/grasshopperdocument-component-grasshopper-visual-studio/ for referencing component and grasshopper document in VS
         GH_Document GrasshopperDocument;
         IGH_Component Component;
         Grasshopper.Kernel.Special.GH_GradientControl gradComp;
 
-        /// <summary>
-        /// Initializes a new instance of the Intensity class.
-        /// </summary>
-        public DisplayField()
-          : base("Display Field", "disField",
-              "Description",
-              "SiteReader", "Point Clouds")
-        {
-        }
-
-        //FIELDS ------------------------------------------------------------------
-        private AsprCld _asprCld;
-        private AsprCld _prevCld;
         private int _selectedField = -1;
         private List<Color> _colors;
         private List<Color> _prevColors;
 
 
+
+        /// <summary>
+        /// Initializes a new instance of the AssignField class.
+        /// </summary>
+        /// 
+
+        public AssignField()
+          : base("Assign Field", "Field",
+              "Assign the values contained in a LAS field to the point cloud", "Point Clouds")
+        {
+        }
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-           pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
-           pManager.AddColourParameter("Gradient", "Grad", "The color gradient that will be used to visualize point cloud fields. " +
-                "Note: if you edit the the gradient component inputs, or replace the auto generated gradient component you may get slower compute times and strange results." +
-                "Absolutely feel free to set your own color scheme though!", GH_ParamAccess.list);
+            base.RegisterInputParams(pManager);
+            pManager.AddColourParameter("Gradient", "Grad", "The color gradient that will be used to visualize point cloud fields. " +
+            "Note: if you edit the the gradient component inputs, or replace the auto generated gradient component you may get slower compute times and strange results." +
+            "Absolutely feel free to set your own color scheme though!", GH_ParamAccess.list);
         }
 
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("test", "t", "yo", GH_ParamAccess.list);
         }
 
+        /*
         //adding this so we can add a gradient control without any inputs
         protected override void BeforeSolveInstance()
         {
@@ -100,10 +97,10 @@ namespace siteReader.Components
                 GrasshopperDocument.AddObject(gradComp, false);
                 this.Params.Input[1].AddSource(gradComp.Params.Output[0]);
 
-                
+
             }
-            
         }
+        */
 
         /// <summary>
         /// This is the method that actually does the work.
@@ -111,33 +108,10 @@ namespace siteReader.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            gradComp.ComputeData();
-
-            // GET INPUTS ---------------------------------------------------------------------------
-
-            AsprCld cld = new AsprCld();
-            if (!DA.GetData(0, ref cld)) 
-            {
-                return;
-            } 
-
-            else if (cld.ptCloud == null || cld.ptCloud.Count == 0)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no points");
-                return;
-            }
-            else
-            {
-                if (_asprCld == null || _prevCld != _asprCld)
-                {
-                    _asprCld = new AsprCld(cld);
-                    _prevCld = _asprCld;
-                }
-                
-            }
+            base.SolveInstance(DA);
 
             List<Color> colors = new List<Color>();
-            if (!DA.GetDataList(1, colors)) 
+            if (!DA.GetDataList(1, colors))
             {
                 return;
             }
@@ -149,10 +123,51 @@ namespace siteReader.Components
             // checking if the colors have been updated
             if (_prevColors != null && _selectedField != -1 && !_colors.SequenceEqual(_prevColors))
             {
-                SelectField(_selectedField); 
+                SelectField(_selectedField);
+            }
+        }
+
+        //PREVIEW OVERRIDES AND UI METHODS ---------------------------------------------------
+
+        //methods for passing values from UI controller
+        public void SelectField(int selection)
+        {
+
+            List<Color> newVColors;
+            _selectedField = selection;
+
+            switch (selection)
+            {
+                case 0:
+                    newVColors = LasMethods.uShortToColor(_cld.intensity, _colors);
+                    _cld.ApplyColors(newVColors);
+                    break;
+
+                case 1:
+                    newVColors = _cld.rgb;
+                    _cld.ApplyColors(newVColors);
+                    break;
+
+                case 2:
+                    newVColors = LasMethods.byteToColor(_cld.classification, _colors);
+                    _cld.ApplyColors(newVColors);
+                    break;
+
+                case 3:
+                    newVColors = LasMethods.byteToColor(_cld.numReturns, _colors);
+                    _cld.ApplyColors(newVColors);
+                    break;
             }
 
+            _prevColors = _colors;
+            ExpirePreview(true);
 
+        }
+
+        //This region overrides the typical component layout
+        public override void CreateAttributes()
+        {
+            m_attributes = new SiteReader.UI.RadioBoxes(this, SelectField);
         }
 
         /// <summary>
@@ -168,84 +183,13 @@ namespace siteReader.Components
             }
         }
 
-
-        //PREVIEW OVERRIDES AND UI METHODS ---------------------------------------------------
-
-        //methods for passing values from UI controller
-        public void SelectField(int selection)
-        {
-
-            List<Color> newVColors;
-            _selectedField = selection;
-
-            switch (selection)
-            {
-                case 0:
-                    newVColors = LasMethods.uShortToColor(_asprCld.intensity, _colors);
-                    _asprCld.ApplyColors(newVColors);
-                    break;
-
-                case 1:
-                    newVColors = _asprCld.rgb;
-                    _asprCld.ApplyColors(newVColors);
-                    break;
-
-                case 2:
-                    newVColors = LasMethods.byteToColor(_asprCld.classification, _colors);
-                    _asprCld.ApplyColors(newVColors);
-                    break;
-
-                case 3:
-                    newVColors = LasMethods.byteToColor(_asprCld.numReturns, _colors);
-                    _asprCld.ApplyColors(newVColors);
-                    break;
-            }
-
-            _prevColors = _colors;
-            ExpirePreview(true);
-
-        }
-
-        //This region overrides the typical component layout
-        public override void CreateAttributes()
-        {
-            m_attributes = new SiteReader.UI.RadioBoxes(this, SelectField);
-        }
-
-        //drawing the point cloud if preview is enabled
-        public override void DrawViewportWires(IGH_PreviewArgs args)
-        {
-            if (_asprCld != null && _asprCld.ptCloud != null)
-            {
-                args.Display.DrawPointCloud(_asprCld.ptCloud, 2);
-            }
-
-        }
-
-        //Return a BoundingBox that contains all the geometry you are about to draw.
-        public override BoundingBox ClippingBox
-        {
-            get
-            {
-                if (_asprCld != null && _asprCld.ptCloud != null)
-                {
-                    return _asprCld.ptCloud.GetBoundingBox(true);
-                }
-
-                return base.ClippingBox;
-
-            }
-        }
-
-        //need to override this to be previewable despite having no geo output with preview method
-        public override bool IsPreviewCapable => true;
-
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.
+        /// MAKE SURE TO CHANGE THIS IF USING THE TEMPLATE!
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("D5F14187-98EA-4D39-9CBD-232429CE6B5B"); }
+            get { return new Guid("31D0F86A-21AA-4AB1-A071-EB77551C4B70"); }
         }
     }
 }

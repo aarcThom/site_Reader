@@ -14,6 +14,48 @@ namespace siteReader.Params
     public class AsprCld : GH_GeometricGoo<PointCloud>, IGH_PreviewData, IGH_BakeAwareObject
 
     {
+        //FIELDS--------------------------------------------------------------
+
+        //aspr / .las properties
+        private readonly string _path;
+        private readonly Dictionary<string, float> _header;
+        private readonly Dictionary<string, string> _vlr;
+        private byte _format;
+
+        private List<ushort> _intensity;
+        private List<Color> _rgb;
+        private List<byte> _classification;
+        private List<byte> _numReturns;
+
+        //laszip
+        private LASzip.Net.laszip _laszip;
+
+        //geometry
+        private PointCloud _ptCloud;
+
+        //PROPERTIES---------------------------------------------------------
+
+        //aspr / .las properties
+        public string path => _path;
+        public Dictionary<string, float> header => _header;
+        public Dictionary<string, string> vlr => _vlr;
+        public byte pointFormat => _format;
+
+        public List<ushort> intensity => _intensity;
+        public List<Color> rgb => _rgb;
+        public List<byte> classification => _classification;
+        public List<byte> numReturns => _numReturns;
+
+        //laszip
+        public LASzip.Net.laszip laszip => _laszip;
+
+        //geometry
+        public PointCloud ptCloud => _ptCloud;
+
+        //needed by components
+        public float displayDensity { get; set; }
+
+
         //CONSTRUCTORS--------------------------------------------------------
         public AsprCld(string path)
         {
@@ -63,48 +105,6 @@ namespace siteReader.Params
         {
             //needed for Rhino ref outs
         }
-
-
-        //FIELDS--------------------------------------------------------------
-
-        //aspr / .las properties
-        private readonly string _path;
-        private readonly Dictionary<string, float> _header;
-        private readonly Dictionary<string, string> _vlr;
-        private byte _format;
-
-        private List<ushort> _intensity;
-        private List<Color> _rgb;
-        private List<byte> _classification;
-        private List<byte> _numReturns;
-
-        //laszip
-        private LASzip.Net.laszip _laszip;
-
-        //geometry
-        private PointCloud _ptCloud;
-
-        //PROPERTIES---------------------------------------------------------
-
-        //aspr / .las properties
-        public string path => _path;
-        public Dictionary<string, float> header => _header;
-        public Dictionary<string, string> vlr => _vlr;
-        public byte pointFormat => _format;
-
-        public List<ushort> intensity => _intensity;
-        public List<Color> rgb => _rgb;
-        public List<byte> classification => _classification;
-        public List<byte> numReturns => _numReturns;
-
-        //laszip
-        public LASzip.Net.laszip laszip => _laszip;
-
-        //geometry
-        public PointCloud ptCloud => _ptCloud;
-
-        //needed by components
-        public float displayDensity { get; set; } 
 
 
         //INTERFACE METHODS---------------------------------------------------------------------------------------
