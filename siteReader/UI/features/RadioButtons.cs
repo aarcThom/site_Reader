@@ -23,14 +23,20 @@ namespace siteReader.UI.features
         public RectangleF[] Buttons => _buttons;
 
         // CONSTRUCTORS-----------------------------------
+        /// <summary>
+        /// Creates a list of radio buttons plus a legend.
+        /// </summary>
+        /// <param name="component">The parent component's bounding rectangle</param>
+        /// <param name="btnList">The names of all the radio buttons.</param>
+        /// <param name="legend">The Radio button section name.</param>
+        /// <param name="horizSpace">Space between buttons and button labels.</param>
+        /// <param name="vertSpace">Vertical space between radio buttons.</param>
+        /// <param name="sideSpace">Space from edge of component to buttons.</param>
+        /// <param name="startPt">The top point of the legend. All elements will be drawn below this.</param>
         public RadioButtons(Rectangle component, string[] btnList, string legend, int horizSpace, int vertSpace, int sideSpace, float startPt)
         {
             var left = component.Left;
-            var top = component.Top;
-            var right = component.Right;
-            var bottom = component.Bottom;
             var width = component.Width;
-            var height = component.Height;
 
             _textRecs = new RectangleF[btnList.Length];
             _selectors = new RectangleF[btnList.Length];
@@ -69,6 +75,15 @@ namespace siteReader.UI.features
         }
 
         //DRAWING THE RECTANGLES
+        /// <summary>
+        /// Draws the radio boxes. Calling during in the Render method of a GH_ComponentsAtttributes class.
+        /// </summary>
+        /// <param name="outline"> The outline of the radio buttons.</param>
+        /// <param name="buttonFont">The font for the buttons' labels.</param>
+        /// <param name="legendFont">The font for the radio buttons' legend</param>
+        /// <param name="graphics">Graphics param from Render method.</param>
+        /// <param name="selection">The selected radio button. Anything >=0 will select a radio button.</param>
+
         public void Draw(Pen outline, Font buttonFont, Font legendFont, Graphics graphics, int selection)
         {
             //draw the legend

@@ -40,6 +40,9 @@ namespace SiteReader.UI
         //the rectangle for the gradient slider
         private RectangleF _gradientRect;
 
+        //slider handles
+        private Sliders _sliderHandles;
+
         private string _fieldLegendTxt = "LIDAR field to display";
 
         // the selections
@@ -102,6 +105,10 @@ namespace SiteReader.UI
             _gradientRect = new RectangleF(left, gradRectTop, width, 50);
             _gradientRect.Inflate(-sideSpacer * 2, 0);
 
+            //the sliders
+            var sliderTop = gradRectTop + horizSpace;
+            _sliderHandles = new Sliders(sliderTop, componentRec, 2, sideSpacer);
+
 
         }
 
@@ -147,7 +154,8 @@ namespace SiteReader.UI
                 var gradRect = new RectangleF[1] { _gradientRect };
                 graphics.DrawRectangles(outLine, gradRect);
 
-                //draw the graph lines
+                //draw the sliders
+                _sliderHandles.Draw(graphics, outLine);
 
             }
 
