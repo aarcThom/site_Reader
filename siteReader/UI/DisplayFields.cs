@@ -19,7 +19,7 @@ using siteReader.UI.features;
 
 namespace SiteReader.UI
 {
-    public class RadioBoxes : GH_ComponentAttributes
+    public class DisplayFields : GH_ComponentAttributes
     {
 
         //FIELDS -----------------------------------------------------------------------------------------------
@@ -27,20 +27,24 @@ namespace SiteReader.UI
         //return values
         private readonly Action<int> _selectField;
 
+        private int _chosenField = -1; // what field the user picks
+
         //rectangles and pts for layouts
         private RectangleF _fieldLegendBounds;
         private Point _ptLeft;
         private Point _ptRight;
 
-        private int _chosenField = -1; // what field the user picks
+        //the radiorectangles for buttons
+        private RadioButtons _radRecs;
+
+        //the rectangle for the gradient slider
+        private RectangleF _gradientRect;
 
         private string _fieldLegendTxt = "LIDAR field to display";
 
         // the selections
         private string[] _fields =new string[4]{ "Intensity", "RGB", "Classification", "Number of Returns" };
 
-        //the radiorectangles for buttons
-        private RadioRectangles _radRecs;
 
         //CONSTRUCTOR -------------------------------------------------------------------------------------------
         // note to self: in C# use Action when you return void, and Func when you return value(s)
@@ -48,7 +52,7 @@ namespace SiteReader.UI
          https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/base
          */
 
-        public RadioBoxes(GH_Component owner, Action<int> selectField) : base(owner)
+        public DisplayFields(GH_Component owner, Action<int> selectField) : base(owner)
         {
             _selectField = selectField;
         }
@@ -71,11 +75,12 @@ namespace SiteReader.UI
              */
 
             const int vertSpace = 10;
-            const int sideSpacer = 2;
-            const int extraHeight = 95;
+            const int sideSpacer = 4;
+            const int extraHeight = 160;
+            const int horizSpace = 8;
 
             //here we can modify the bounds
-            componentRec.Height += extraHeight; // for example
+            componentRec.Height += extraHeight;
 
             //here we can assign the modified bounds to the component's bounds--------------------
             Bounds = componentRec;
@@ -84,15 +89,19 @@ namespace SiteReader.UI
 
             //points for divider lines
 
-            _ptLeft = new Point(left + sideSpacer, bottom + vertSpace / 2);
-            _ptRight = new Point(right - sideSpacer, bottom + vertSpace / 2);
-
-            //the field legend
-            _fieldLegendBounds = new RectangleF(left, bottom + vertSpace, width, 10);
-            _fieldLegendBounds.Inflate(-sideSpacer * 2, 0);
+            _ptLeft = new Point(left + sideSpacer / 2, bottom + vertSpace / 2);
+            _ptRight = new Point(right - sideSpacer / 2, bottom + vertSpace / 2);
 
             //the radio buttons
-            _radRecs = new RadioRectangles(componentRec, _fields, 8, vertSpace, _fieldLegendBounds.Bottom);
+            _radRecs = new RadioButtons(componentRec, _fields, _fieldLegendTxt, horizSpace, vertSpace,
+                sideSpacer, _ptLeft.Y + vertSpace);
+
+
+            //the gradient graph
+            var gradRectTop = _radRecs.Buttons.Last().Bottom + vertSpace;
+            _gradientRect = new RectangleF(left, gradRectTop, width, 50);
+            _gradientRect.Inflate(-sideSpacer * 2, 0);
+
 
         }
 
@@ -131,28 +140,15 @@ namespace SiteReader.UI
                 //spacer line
                 graphics.DrawLine(outLine, _ptLeft, _ptRight);
 
-                //field legend 
-                graphics.DrawString(_fieldLegendTxt, font, Brushes.Black, _fieldLegendBounds, GH_TextRenderingConstants.NearCenter);
+                //radio buttons
+                _radRecs.Draw(outLine, font, font, graphics, _chosenField);
 
-                //drawings the radio buttons
-                graphics.FillRectangles(CompStyles.RadioUnclicked, _radRecs.Buttons);
-                graphics.DrawRectangles(outLine, _radRecs.Buttons);
+                //drawing the gradient graph outline
+                var gradRect = new RectangleF[1] { _gradientRect };
+                graphics.DrawRectangles(outLine, gradRect);
 
-                //drawing the clicked radion buttons if selected
-                if (_chosenField >= 0)
-                {
-                    var clickRec = new[] { _radRecs.Selectors[_chosenField] };
-                    graphics.FillRectangles(CompStyles.RadioClicked, clickRec);
-                }
+                //draw the graph lines
 
-                //drawing the button legends
-                for (int i = 0; i < _fields.Length; i++)
-                {
-                    var text = _fields[i];
-                    var rec = _radRecs.Legends[i];
-
-                    graphics.DrawString(text, font, Brushes.Black, rec, GH_TextRenderingConstants.NearCenter);
-                }
             }
 
         }

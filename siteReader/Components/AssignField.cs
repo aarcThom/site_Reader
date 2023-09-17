@@ -167,7 +167,7 @@ namespace siteReader.Components
         //This region overrides the typical component layout
         public override void CreateAttributes()
         {
-            m_attributes = new SiteReader.UI.RadioBoxes(this, SelectField);
+            m_attributes = new SiteReader.UI.DisplayFields(this, SelectField);
         }
 
         /// <summary>
