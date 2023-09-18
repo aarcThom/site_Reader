@@ -16,6 +16,7 @@ using Rhino.UI;
 using MouseButtons = System.Windows.Forms.MouseButtons;
 using siteReader.Methods;
 using siteReader.UI.features;
+using Grasshopper;
 
 namespace SiteReader.UI
 {
@@ -30,7 +31,6 @@ namespace SiteReader.UI
         private int _chosenField = -1; // what field the user picks
 
         //rectangles and pts for layouts
-        private RectangleF _fieldLegendBounds;
         private Point _ptLeft;
         private Point _ptRight;
 
@@ -41,7 +41,14 @@ namespace SiteReader.UI
         private RectangleF _gradientRect;
 
         //slider handles
-        private Sliders _sliderHandles;
+        private int _numSliders = 1;
+        private HorizSliders _sliderHandles;
+
+        //toggle for sliding
+        private bool _sliding = false;
+        private int _slidingIX;
+
+        private float[] _offsets;
 
         private string _fieldLegendTxt = "LIDAR field to display";
 
@@ -58,6 +65,8 @@ namespace SiteReader.UI
         public DisplayFields(GH_Component owner, Action<int> selectField) : base(owner)
         {
             _selectField = selectField;
+            _offsets = Enumerable.Repeat(0f, _numSliders).ToArray();
+            
         }
 
 
@@ -105,9 +114,11 @@ namespace SiteReader.UI
             _gradientRect = new RectangleF(left, gradRectTop, width, 50);
             _gradientRect.Inflate(-sideSpacer * 2, 0);
 
-            //the sliders
+            //the sliders 
             var sliderTop = gradRectTop + horizSpace;
-            _sliderHandles = new Sliders(sliderTop, componentRec, 2, sideSpacer);
+
+            _sliderHandles = new HorizSliders(sliderTop, componentRec, _numSliders, sideSpacer, _offsets);
+            
 
 
         }
@@ -161,10 +172,12 @@ namespace SiteReader.UI
 
         }
 
+        
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
             if (e.Button == MouseButtons.Left && Owner.RuntimeMessageLevel == GH_RuntimeMessageLevel.Blank)
             {
+                //radio buttons
                 for (int i = 0; i < _radRecs.Buttons.Length; i++)
                 {
                     if (_radRecs.Buttons[i].Contains(e.CanvasLocation))
@@ -182,10 +195,62 @@ namespace SiteReader.UI
                         return GH_ObjectResponse.Handled;
                     }
                 }
+
+                //the slider handles
+                for (int i = 0; i < _sliderHandles.Handles.Length; i++)
+                {
+                    if (_sliderHandles.Handles[i].Rect.Contains(e.CanvasLocation))
+                    {
+
+                        //use the drag cursor
+                        Instances.CursorServer.AttachCursor(sender, "GH_NumericSlider");
+                        _sliding = true;
+                        _slidingIX = i;
+                        return GH_ObjectResponse.Capture;
+                    }
+                }
             }
 
 
             return base.RespondToMouseDown(sender, e);
+        }
+
+        //responding to sliver moves
+        public override GH_ObjectResponse RespondToMouseMove(GH_Canvas sender, GH_CanvasMouseEvent e)
+        {
+            if (e.Button == MouseButtons.Left && _sliding)
+            {
+                _offsets[_slidingIX] = e.CanvasX - _sliderHandles.Handles[_slidingIX].Xpos;
+
+                /* note sure why I can't access Owner.ExpireLayout() but the below works to refresh the display while NOT expiring the solution
+                 https://discourse.mcneel.com/t/grasshopper-importBtn-should-i-expire-solution/117368
+                 */
+                base.ExpireLayout();
+                sender.Refresh();
+
+                return GH_ObjectResponse.Ignore;
+            }
+
+
+            return base.RespondToMouseMove(sender, e);
+        }
+
+        //releasing the slider
+        public override GH_ObjectResponse RespondToMouseUp(GH_Canvas sender, GH_CanvasMouseEvent e)
+        {
+            if (e.Button == MouseButtons.Left && _sliding)
+            {
+                //here we return the value....
+
+                // again, we don't want to refresh the solution until the display importBtn is clicked
+                base.ExpireLayout();
+                sender.Refresh();
+
+                _sliding = false;
+                return GH_ObjectResponse.Release;
+            }
+
+            return base.RespondToMouseUp(sender, e);
         }
 
     }
