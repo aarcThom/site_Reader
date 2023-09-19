@@ -41,19 +41,18 @@ namespace SiteReader.UI
         private RectangleF _gradientRect;
 
         //slider handles
-        private int _numSliders = 1;
-        private HorizSliders _sliderHandles;
-
-        //toggle for sliding
+        private int _numHandles = 2;
+        private int _handleDiameter = 8;
+        private HorizSliders _slider;
+        private RectangleF[] _handleRecs;
+        private int _currentHandle;
+        private float _currentOffset;
         private bool _sliding = false;
-        private int _slidingIX;
-
-        private float[] _offsets;
 
         private string _fieldLegendTxt = "LIDAR field to display";
 
         // the selections
-        private string[] _fields =new string[4]{ "Intensity", "RGB", "Classification", "Number of Returns" };
+        private string[] _fields = new string[4] { "Intensity", "RGB", "Classification", "Number of Returns" };
 
 
         //CONSTRUCTOR -------------------------------------------------------------------------------------------
@@ -65,8 +64,8 @@ namespace SiteReader.UI
         public DisplayFields(GH_Component owner, Action<int> selectField) : base(owner)
         {
             _selectField = selectField;
-            _offsets = Enumerable.Repeat(0f, _numSliders).ToArray();
-            
+            _slider = new HorizSliders(_numHandles, _handleDiameter);
+
         }
 
 
@@ -100,7 +99,6 @@ namespace SiteReader.UI
             //here we can add extra stuff to the layout-------------------------------------------
 
             //points for divider lines
-
             _ptLeft = new Point(left + sideSpacer / 2, bottom + vertSpace / 2);
             _ptRight = new Point(right - sideSpacer / 2, bottom + vertSpace / 2);
 
@@ -116,11 +114,16 @@ namespace SiteReader.UI
 
             //the sliders 
             var sliderTop = gradRectTop + horizSpace;
+            var sliderLeft = left + sideSpacer + _handleDiameter / 2;
+            var sliderRight = right - sideSpacer - _handleDiameter / 2;
+            var sliderWidth = sliderRight - sliderLeft;
 
-            _sliderHandles = new HorizSliders(sliderTop, componentRec, _numSliders, sideSpacer, _offsets);
-            
+            if (_sliding)
+            {
+                _slider.MoveSlider(_currentHandle, _currentOffset);
+            }
 
-
+            _handleRecs = _slider.LayoutSlider(sliderLeft, sliderTop, sliderWidth);
         }
 
         protected override void Render(GH_Canvas canvas, Graphics graphics, GH_CanvasChannel channel)
@@ -165,14 +168,14 @@ namespace SiteReader.UI
                 var gradRect = new RectangleF[1] { _gradientRect };
                 graphics.DrawRectangles(outLine, gradRect);
 
-                //draw the sliders
-                _sliderHandles.Draw(graphics, outLine);
+                //draw the slider
+                _slider.DrawSlider(graphics, outLine);
 
             }
 
         }
 
-        
+
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
             if (e.Button == MouseButtons.Left && Owner.RuntimeMessageLevel == GH_RuntimeMessageLevel.Blank)
@@ -196,53 +199,47 @@ namespace SiteReader.UI
                     }
                 }
 
-                //the slider handles
-                for (int i = 0; i < _sliderHandles.Handles.Length; i++)
+                //slider handles
+                for (int i = 0; i < _handleRecs.Length; i++)
                 {
-                    if (_sliderHandles.Handles[i].Rect.Contains(e.CanvasLocation))
+                    if (_handleRecs[i].Contains(e.CanvasLocation))
                     {
+                        _currentHandle = i;
 
                         //use the drag cursor
-                        Instances.CursorServer.AttachCursor(sender, "GH_NumericSlider");
+                        Grasshopper.Instances.CursorServer.AttachCursor(sender, "GH_NumericSlider");
                         _sliding = true;
-                        _slidingIX = i;
                         return GH_ObjectResponse.Capture;
                     }
                 }
+
             }
-
-
             return base.RespondToMouseDown(sender, e);
         }
 
-        //responding to sliver moves
+        //slider handles moved
         public override GH_ObjectResponse RespondToMouseMove(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
             if (e.Button == MouseButtons.Left && _sliding)
             {
-                _offsets[_slidingIX] = e.CanvasX - _sliderHandles.Handles[_slidingIX].Xpos;
+                var recCenter = _handleRecs[_currentHandle].Left + _handleRecs[_currentHandle].Width / 2;
+                _currentOffset = e.CanvasX - recCenter;
+                
 
-                /* note sure why I can't access Owner.ExpireLayout() but the below works to refresh the display while NOT expiring the solution
-                 https://discourse.mcneel.com/t/grasshopper-importBtn-should-i-expire-solution/117368
-                 */
                 base.ExpireLayout();
                 sender.Refresh();
 
                 return GH_ObjectResponse.Ignore;
             }
 
-
             return base.RespondToMouseMove(sender, e);
         }
 
-        //releasing the slider
+        //slider handle released
         public override GH_ObjectResponse RespondToMouseUp(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
             if (e.Button == MouseButtons.Left && _sliding)
             {
-                //here we return the value....
-
-                // again, we don't want to refresh the solution until the display importBtn is clicked
                 base.ExpireLayout();
                 sender.Refresh();
 
@@ -252,6 +249,7 @@ namespace SiteReader.UI
 
             return base.RespondToMouseUp(sender, e);
         }
+
 
     }
 }

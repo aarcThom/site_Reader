@@ -1,177 +1,205 @@
-﻿using System;
+﻿using System.Drawing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
-using System.Drawing;
-using Grasshopper.Kernel.Geometry;
-using Rhino.Input.Custom;
-using Rhino.UI.Controls;
-using Eto.Forms;
 using Newtonsoft.Json;
-
 namespace siteReader.UI.features
 {
     public class HorizSliders
     {
-        //FIELDS--------------------------------------------------
-        private float _xLeft;
-        private float _xRight;
-        private float _y;
+        // FIELDS--------------------------------------------
+        private List<float> _handPos;
+        private List<float> _minPos;
+        private List<float> _maxPos;
 
-        private bool _drawBar;
+        private RectangleF[] _drawRecs;
 
-        private int _sliderDiameter;
+        private int _numSliders;
+        private int _dia;
 
-        private HorizSliderHandle[] _handles;
-        private float[] _offsets;
+        private bool _drawLine;
+        private float _lineWidth;
+        private float _lineLeft;
+        private float _lineY;
 
-        //PROPERTIES----------------------------------------------
-
-        public HorizSliderHandle[] Handles => _handles;
-
-        public HorizSliders(float sliderTop, Rectangle comp, int numSliders, int sideSpace, float[] offsets, bool drawBar = true, int diameter = 8)
+        public HorizSliders(int numSliders, int handleDiameter, bool drawLine = true)
         {
-            _drawBar = drawBar;
-            _sliderDiameter = diameter;
-            _offsets = offsets;
+            //the initial positions - evenly spaced between 0 and 1
+            _handPos = Enumerable.Range(0, numSliders).Select(x => x / ((float)(numSliders - 1))).ToList();
 
-            _y = sliderTop + _sliderDiameter / 2;
-            _xLeft = comp.Left + sideSpace + _sliderDiameter / 2;
-            _xRight = comp.Right - sideSpace - _sliderDiameter / 2;
-            var sliderWidth = _xRight - _xLeft;
+            //the initial draw rectangles for the handles
+            _drawRecs = new RectangleF[numSliders];
 
-            float handleSpace;
-            if (numSliders > 1)
+            //the initial max and min positions each slider can be slid to
+            _minPos = new List<float> { 0 };
+            _minPos.AddRange(_handPos.GetRange(0, numSliders - 1));
+
+            _maxPos = _handPos.GetRange(1, numSliders - 1);
+            _maxPos.Add(1);
+
+
+            _numSliders = numSliders;
+
+            _dia = handleDiameter;
+
+            _drawLine = drawLine;
+        }
+
+        public RectangleF[] LayoutSlider(float leftSide, float top, float width)
+        {
+            RectangleF[] grabRecs = new RectangleF[_numSliders];
+            for (int i = 0; i < _numSliders; i++)
             {
-                handleSpace = sliderWidth / (numSliders - 1);
-            }
-            else
-            {
-                handleSpace = 0;
-            }
-
-            //initial handle rectangles
-            _handles = new HorizSliderHandle[numSliders];
-
-            for (int i = 0; i < numSliders; i++)
-            {
-                var sliderX = handleSpace * i + _xLeft + _offsets[i];
-                HorizSliderHandle handle = new HorizSliderHandle(sliderX, _y, _sliderDiameter, i, _handles);
-                _handles[i] = handle;
-            }
-
-            //set initial handle min / max values
-            if (numSliders == 1)
-            {
-                _handles[0].MinX = _xLeft;
-                _handles[0].MaxX = _xRight;
-            }
-            else
-            {
-                //set the left most and right most handles 
-                _handles[0].MinX = _xLeft;
-                _handles[0].MaxX = _handles[1].Xpos;
-
-                _handles.Last().MinX = _handles[numSliders - 2].Xpos;
-                _handles.Last().MaxX = _xRight;
-
-                for (int i = 1; i < numSliders - 1; i++)
+                float xPos;
+                //if two handles are sharing a spot and the current handle is on the right side
+                if (TestProximityLeft(i))
                 {
-                    _handles[i].MinX = _handles[i - 1].Xpos;
-                    _handles[i].MaxX = _handles[i + 1].Xpos;
+                    xPos = leftSide + width * _handPos[i] - _dia / 2;
+                    grabRecs[i] = new RectangleF(xPos + _dia / 2, top, _dia / 2, _dia);
+                    
+                }
+
+                //if two handles are sharing a spot and the current handle is on the left side
+                else if (TestProximityRight(i))
+                {
+                    xPos = leftSide + width * _handPos[i] - _dia / 2;
+                    grabRecs[i] = new RectangleF(xPos, top, _dia / 2, _dia);
+                }
+
+                else
+                {
+                    xPos = leftSide + width * _handPos[i] - _dia / 2;
+                    grabRecs[i] = new RectangleF(xPos, top, _dia, _dia);
+                }
+
+                _drawRecs[i] = new RectangleF(xPos, top, _dia, _dia);
+
+
+            }
+
+            _lineWidth = width;
+            _lineLeft = leftSide;
+            _lineY = top + _dia / 2;
+      
+            return grabRecs;
+        }
+
+        public void DrawSlider(Graphics graphics, Pen outline)
+        {
+            if (_drawLine)
+            {
+                graphics.DrawLine(outline, _lineLeft, _lineY, _lineLeft + _lineWidth, _lineY);
+            }
+
+            for (int i = 0; i < _numSliders; i++)
+            {
+                var handle = _drawRecs[i];
+                var lineX = handle.Right - handle.Width / 2;
+                System.Drawing.Drawing2D.FillMode fillMode = System.Drawing.Drawing2D.FillMode.Winding;
+
+                if (TestProximityLeft(i))
+                {
+                    var fillPts = FillArc(handle, "right");
+                    graphics.FillPolygon(CompStyles.HandleFill, fillPts, fillMode);
+                    graphics.DrawArc(outline, handle, -90, 180);
+                    graphics.DrawLine(outline, lineX, handle.Top, lineX, handle.Bottom);
+
+                }
+                else if (TestProximityRight(i))
+                {
+                    var fillPts = FillArc(handle, "left");
+                    graphics.FillPolygon(CompStyles.HandleFill, fillPts, fillMode);
+                    graphics.DrawArc(outline, handle, 90, 180);
+                    graphics.DrawLine(outline, lineX, handle.Top, lineX, handle.Bottom);
+                }
+                else
+                {
+                    graphics.FillEllipse(CompStyles.HandleFill, handle);
+                    graphics.DrawEllipse(outline, handle);
                 }
             }
         }
 
-        public void Draw(Graphics graphics, Pen outline)
+        public void MoveSlider(int handleIX, float offset)
         {
-            //slider bar (if drawn)
-            if (_drawBar)
+            var offsetFactor = offset / _lineWidth;
+            var posFactor = _handPos[handleIX] + offsetFactor;
+            var maxX = _maxPos[handleIX];
+            var minX = _minPos[handleIX];
+
+            if (posFactor >= minX && posFactor <= maxX)
             {
-                graphics.DrawLine(outline, _xLeft, _y, _xRight, _y);
+                _handPos[handleIX] = posFactor;
+
+                if (handleIX == 0 && _numSliders > 1)
+                {
+                    _minPos[1] = posFactor;
+                }
+
+                else if (handleIX == _numSliders - 1 && _numSliders > 1)
+                {
+                    _maxPos[handleIX - 1] = posFactor;
+                }
+
+                else if (_numSliders > 1)
+                {
+                    _minPos[handleIX + 1] = posFactor;
+                    _maxPos[handleIX - 1] = posFactor;
+                }
+
             }
-            
-            //slider handle(s)
-            foreach(var handle in _handles)
+            else
             {
-                handle.Draw(graphics, outline);
+                var bounds = new List<float>() { maxX, minX };
+                _handPos[handleIX] = bounds.OrderBy(val => Math.Abs(posFactor - val)).First();
             }
         }
-    }
 
-    public class HorizSliderHandle
-    {
-        //FIELDS ---------------------------------
-        private float _yPos; // center position of the handle
-        private float _xPos;
-
-        private float _left; // the top left point for drawing a rectangle
-        private float _top;
-
-        private float _handleDia; //handle diameter
-
-        private float _maxX; //the extents that the slider can slider
-        private float _minX;
-
-        private int _index; //the position of the handle in the list
-
-        private float _offset; //the offset caused by user moving
-
-        private RectangleF _rec;
-        private HorizSliderHandle[] _nbrhd;
-
-        //PROPERTIES -----------------------------
-        public float Xpos
+        private bool TestProximityLeft(int i)
         {
-            get => _xPos;
-            set => _xPos = value;
+           if(i != 0 && Math.Abs(_handPos[i] - _handPos[i - 1]) < 0.02) return true;
+           return false;
         }
 
-        public float MaxX
+        private bool TestProximityRight(int i)
         {
-            get => _maxX;
-            set => _maxX = value;
+            if (i != _numSliders - 1 && Math.Abs(_handPos[i] - _handPos[i + 1]) < 0.02) return true;
+            return false;
         }
 
-        public float MinX
+        private PointF[] FillArc(RectangleF rec, string side)
         {
-            get => _minX;
-            set => _minX = value;
+            List<float> angles;
+            if (side == "left")
+            {
+                angles = Enumerable.Range(5, 11).Select(x => (float)((float)x / 2 * Math.PI / 5)).ToList();
+            }
+            else if (side == "right")
+            {
+                angles = Enumerable.Range(15, 6).Select(x => (float)((float)x / 2 * Math.PI / 5)).ToList();
+                var angles2 = Enumerable.Range(1, 5).Select(x => (float)((float)x / 2 * Math.PI / 5)).ToList();
+                angles.AddRange(angles2);
+            }
+            else return null;
+
+            PointF[] points = new PointF[11];
+            for (int i = 0; i < 11; i++)
+            {
+                var x = rec.Width / 2f * Math.Cos(angles[i]) + rec.Left + rec.Width / 2f;
+                var y = rec.Width / 2f * Math.Sin(angles[i]) + rec.Top + rec.Height / 2f;
+
+                points[i] = new PointF((float)x, (float)y);
+            }
+
+            return points;
+
         }
 
-        public float HandleDia
-        {
-            get => _handleDia;
-            set => _handleDia = value;
-        }
 
-        public RectangleF Rect => _rec;
 
-        public float Offset => _offset;
-
-        public HorizSliderHandle(float x, float y, float dia, int index, HorizSliderHandle[] neighbourhood)
-        {
-            _left = x - dia / 2;
-            _top = y - dia / 2;
-
-            _xPos = x;
-            _yPos = y;
-
-            _handleDia = dia;
-
-            _rec = new RectangleF(_left, _top, _handleDia, _handleDia);
-            _index = index;
-            _nbrhd = neighbourhood;
-
-            _offset = 0;
-        }
-
-        public void Draw(Graphics graphics, Pen outline)
-        {
-            graphics.FillEllipse(CompStyles.HandleFill, _rec);
-            graphics.DrawEllipse(outline, _rec);
-        }
 
 
     }
