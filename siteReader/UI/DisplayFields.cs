@@ -28,6 +28,7 @@ namespace SiteReader.UI
         //return values
         private readonly Action<int> _selectField;
         private readonly Action<List<float>> _handleValues;
+        private readonly Action _filterFields;
  
 
         private int _chosenField = -1; // what field the user picks
@@ -53,6 +54,8 @@ namespace SiteReader.UI
 
         private string _fieldLegendTxt = "LIDAR field to display";
 
+        private RectangleF _filterButton;
+
         // the selections
         private string[] _fields = new string[4] { "Intensity", "RGB", "Classification", "Number of Returns" };
 
@@ -63,11 +66,12 @@ namespace SiteReader.UI
          https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/base
          */
 
-        public DisplayFields(GH_Component owner, Action<int> selectField, Action<List<float>> handleValues) : base(owner)
+        public DisplayFields(GH_Component owner, Action<int> selectField, Action<List<float>> handleValues, Action filterFields) : base(owner)
         {
             _selectField = selectField;
             _slider = new HorizSliders(_numHandles, _handleDiameter);
             _handleValues = handleValues;
+            _filterFields = filterFields;
         }
 
 
@@ -89,7 +93,7 @@ namespace SiteReader.UI
 
             const int vertSpace = 10;
             const int sideSpacer = 4;
-            const int extraHeight = 160;
+            const int extraHeight = 190;
             const int horizSpace = 8;
 
             //here we can modify the bounds
@@ -126,6 +130,11 @@ namespace SiteReader.UI
             }
 
             _handleRecs = _slider.LayoutSlider(sliderLeft, sliderTop, sliderWidth);
+
+            //the filter button
+            var filterButTop = _gradientRect.Bottom + vertSpace;
+            _filterButton = new RectangleF(left, filterButTop, width, 20);
+            _filterButton.Inflate(-sideSpacer * 2, 0);
         }
 
         protected override void Render(GH_Canvas canvas, Graphics graphics, GH_CanvasChannel channel)
@@ -172,6 +181,11 @@ namespace SiteReader.UI
 
                 //draw the slider
                 _slider.DrawSlider(graphics, outLine);
+
+                //the draw the filter button
+                GH_Capsule filterButton = GH_Capsule.CreateTextCapsule(_filterButton, _filterButton, GH_Palette.Black, "Filter Field Values");
+                filterButton.Render(graphics, Selected, Owner.Locked, false);
+                filterButton.Dispose();
 
             }
 
@@ -254,6 +268,23 @@ namespace SiteReader.UI
 
             return base.RespondToMouseUp(sender, e);
         }
+
+        //filter field button clicked
+        public override GH_ObjectResponse RespondToMouseDoubleClick(GH_Canvas sender, GH_CanvasMouseEvent e)
+        {
+            if (e.Button == MouseButtons.Left && _filterButton.Contains(e.CanvasLocation))
+            {
+                Owner.RecordUndoEvent("SiteReader field filtered");
+                _filterFields();
+                Owner.ExpireSolution(true);
+                return GH_ObjectResponse.Handled;
+
+            }
+
+            return base.RespondToMouseDoubleClick(sender, e);
+        }
+
+
 
 
     }

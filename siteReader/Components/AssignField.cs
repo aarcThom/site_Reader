@@ -183,7 +183,7 @@ namespace siteReader.Components
         //This region overrides the typical component layout
         public override void CreateAttributes()
         {
-            m_attributes = new SiteReader.UI.DisplayFields(this, SelectField, SliderValues);
+            m_attributes = new SiteReader.UI.DisplayFields(this, SelectField, SliderValues, FilterFields);
         }
 
         //need to override this to display the value cropped cloud
@@ -192,17 +192,8 @@ namespace siteReader.Components
             if (_cld != null && _cld.ptCloud != null)
             {
 
-                if (_cld.currentField != null)
+                if (_cld.currentField != null && _previewCloud != null)
                 {
-                    _previewCloud = new PointCloud();
-                    var cldPts = _cld.ptCloud.GetPoints();
-                    var ptColors = _cld.ptCloud.GetColors();
-
-                    for (int i = 0; i < cldPts.Length; i++)
-                    {
-                        if (_cld.currentField[i] > _handleValues[0] && _cld.currentField[i] < _handleValues[1])
-                            _previewCloud.Add(cldPts[i], ptColors[i]);
-                    }
                     args.Display.DrawPointCloud(_previewCloud, 2);
                 }
 
@@ -210,7 +201,22 @@ namespace siteReader.Components
                 {
                     args.Display.DrawPointCloud(_cld.ptCloud, 2);
                 }
-                
+            }
+        }
+
+        //Other methods
+        public void FilterFields()
+        {
+            if (_cld.currentField == null) return;
+
+            _previewCloud = new PointCloud();
+            var cldPts = _cld.ptCloud.GetPoints();
+            var ptColors = _cld.ptCloud.GetColors();
+
+            for (int i = 0; i < cldPts.Length; i++)
+            {
+                if (_cld.currentField[i] >= _handleValues[0] && _cld.currentField[i] <= _handleValues[1])
+                    _previewCloud.Add(cldPts[i], ptColors[i]);
             }
         }
 
