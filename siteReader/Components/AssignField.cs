@@ -27,6 +27,10 @@ namespace siteReader.Components
 
         private PointCloud _previewCloud;
 
+        //the lists for displaying the bar graph
+        private List<int> _uniqueFieldVals;
+        private List<int> _fieldValCounts;
+
 
 
         /// <summary>
@@ -170,6 +174,7 @@ namespace siteReader.Components
                     break;
             }
 
+            CountFieldVals();
             _prevColors = _colors;
             ExpirePreview(true);
 
@@ -180,10 +185,25 @@ namespace siteReader.Components
             _handleValues = handlePositions;
         }
 
+        public List<Color> SendColors()
+        {
+            return _colors;
+        }
+
+        public List<int> SendValCounts()
+        {
+            return _fieldValCounts;
+        }
+
+        public List<int> SendValues()
+        {
+            return _uniqueFieldVals;
+        }
+
         //This region overrides the typical component layout
         public override void CreateAttributes()
         {
-            m_attributes = new SiteReader.UI.DisplayFields(this, SelectField, SliderValues, FilterFields);
+            m_attributes = new SiteReader.UI.DisplayFields(this, SelectField, SliderValues, FilterFields, SendColors, SendValCounts, SendValues);
         }
 
         //need to override this to display the value cropped cloud
@@ -218,6 +238,21 @@ namespace siteReader.Components
                 if (_cld.currentField[i] >= _handleValues[0] && _cld.currentField[i] <= _handleValues[1])
                     _previewCloud.Add(cldPts[i], ptColors[i]);
             }
+        }
+
+        private void CountFieldVals()
+        {
+            var formattedVals = _cld.currentField.Select(val => (int)(val * 255)).ToList();
+            formattedVals.Sort();
+            _uniqueFieldVals = new HashSet<int>(formattedVals).ToList();
+
+            _fieldValCounts = new List<int>();
+
+            foreach(var val in _uniqueFieldVals)
+            {
+                _fieldValCounts.Add(formattedVals.Count(x => x == val));
+            }
+
         }
 
         /// <summary>

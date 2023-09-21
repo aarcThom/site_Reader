@@ -29,6 +29,11 @@ namespace SiteReader.UI
         private readonly Action<int> _selectField;
         private readonly Action<List<float>> _handleValues;
         private readonly Action _filterFields;
+
+        //get values from owner
+        private readonly Func<List<Color>> _fColors;
+        private readonly Func<List<int>> _fValCounts;
+        private readonly Func<List<int>> _fValues;
  
 
         private int _chosenField = -1; // what field the user picks
@@ -66,12 +71,16 @@ namespace SiteReader.UI
          https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/base
          */
 
-        public DisplayFields(GH_Component owner, Action<int> selectField, Action<List<float>> handleValues, Action filterFields) : base(owner)
+        public DisplayFields(GH_Component owner, Action<int> selectField, Action<List<float>> handleValues, 
+            Action filterFields, Func<List<Color>> fColors, Func<List<int>> fValCounts, Func<List<int>> fValues) : base(owner)
         {
             _selectField = selectField;
             _slider = new HorizSliders(_numHandles, _handleDiameter);
             _handleValues = handleValues;
             _filterFields = filterFields;
+            _fColors = fColors;
+            _fValCounts = fValCounts;
+            _fValues = fValues;
         }
 
 
@@ -113,7 +122,7 @@ namespace SiteReader.UI
                 sideSpacer, _ptLeft.Y + vertSpace);
 
 
-            //the gradient graph
+            //the gradient graph rectangle
             var gradRectTop = _radRecs.Buttons.Last().Bottom + vertSpace;
             _gradientRect = new RectangleF(left, gradRectTop, width, 50);
             _gradientRect.Inflate(-sideSpacer * 2, 0);
@@ -178,6 +187,35 @@ namespace SiteReader.UI
                 //drawing the gradient graph outline
                 var gradRect = new RectangleF[1] { _gradientRect };
                 graphics.DrawRectangles(outLine, gradRect);
+
+                //drawing the gradient graphs
+                if (_chosenField >= 0)
+                {
+                    var vals = _fValues();
+                    var valCnts = _fValCounts();
+                    var colors = _fColors();
+
+                    var maxHeight = _gradientRect.Height * 0.6;
+                    var maxCount = valCnts.Max();
+                    var baseY = _gradientRect.Bottom;
+
+                    for (int i = 0; i < 255; i++)
+                    {
+                        if (vals.Contains(i))
+                        {
+                            int ix = vals.IndexOf(i);
+
+                            var lineX = _gradientRect.Left + _gradientRect.Width * i / 255;
+                            var lineY = (float)(baseY - maxHeight * valCnts[ix] / maxCount);
+
+                            Pen lineCol = new Pen(colors[ix], _gradientRect.Width / 255);
+
+                            graphics.DrawLine(lineCol, lineX, lineY, lineX, baseY);
+                        }
+                        
+                    }
+                }
+                
 
                 //draw the slider
                 _slider.DrawSlider(graphics, outLine);

@@ -243,7 +243,7 @@ namespace siteReader.Params
             //NOTE: I NEED TO FIGURE THIS OUT
             // I'm thinking it will be based on color distance from a preset rainbow slider
 
-            _currentField = Enumerable.Repeat(1f, _rgb.Count).ToList();
+            _currentField = Enumerable.Range(0, _rgb.Count).Select(val => (float)val / (float)_rgb.Count).ToList();
         }
     }
 }
