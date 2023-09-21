@@ -8,6 +8,8 @@ using System.Drawing;
 using Rhino.DocObjects;
 using Rhino;
 using Aardvark.Base;
+using Rhino.Commands;
+using System.Linq;
 
 namespace siteReader.Params
 {
@@ -27,6 +29,8 @@ namespace siteReader.Params
         private List<byte> _classification;
         private List<byte> _numReturns;
 
+        private List<float> _currentField; //used for cropping by value - floats between 0 and 1
+
         //laszip
         private LASzip.Net.laszip _laszip;
 
@@ -45,6 +49,8 @@ namespace siteReader.Params
         public List<Color> rgb => _rgb;
         public List<byte> classification => _classification;
         public List<byte> numReturns => _numReturns;
+
+        public List<float> currentField => _currentField;
 
         //laszip
         public LASzip.Net.laszip laszip => _laszip;
@@ -200,6 +206,44 @@ namespace siteReader.Params
                 pt.Color = colors[colorCount];
                 colorCount++;
             }
+        }
+
+        public void SetFieldToClassOrReturns(List<byte> field)
+        {
+            List<float> result = new List<float>();
+
+            byte maxVal = field.Max();
+
+            foreach (var val in field)
+            {
+                float mapped = maxVal == 0 ? 0 : (float)val / (float)maxVal;
+                result.Add(mapped);
+            }
+
+            _currentField = result;
+        }
+
+        public void SetFieldToIntensity()
+        {
+            List<float> result = new List<float>();
+
+            ushort maxVal = _intensity.Max();
+
+            foreach (var val in _intensity)
+            {
+                float mapped = maxVal == 0 ? 0 : (float)val / (float)maxVal;
+                result.Add(mapped);
+            }
+
+            _currentField = result;
+        }
+
+        public void SetFieldToRGB()
+        {
+            //NOTE: I NEED TO FIGURE THIS OUT
+            // I'm thinking it will be based on color distance from a preset rainbow slider
+
+            _currentField = Enumerable.Repeat(1f, _rgb.Count).ToList();
         }
     }
 }

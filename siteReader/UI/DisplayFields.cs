@@ -27,6 +27,8 @@ namespace SiteReader.UI
 
         //return values
         private readonly Action<int> _selectField;
+        private readonly Action<List<float>> _handleValues;
+ 
 
         private int _chosenField = -1; // what field the user picks
 
@@ -61,11 +63,11 @@ namespace SiteReader.UI
          https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/base
          */
 
-        public DisplayFields(GH_Component owner, Action<int> selectField) : base(owner)
+        public DisplayFields(GH_Component owner, Action<int> selectField, Action<List<float>> handleValues) : base(owner)
         {
             _selectField = selectField;
             _slider = new HorizSliders(_numHandles, _handleDiameter);
-
+            _handleValues = handleValues;
         }
 
 
@@ -224,10 +226,11 @@ namespace SiteReader.UI
             {
                 var recCenter = _handleRecs[_currentHandle].Left + _handleRecs[_currentHandle].Width / 2;
                 _currentOffset = e.CanvasX - recCenter;
-                
+                _handleValues(_slider.HandPos);
 
                 base.ExpireLayout();
                 sender.Refresh();
+                Owner.ExpirePreview(true);
 
                 return GH_ObjectResponse.Ignore;
             }
@@ -242,6 +245,8 @@ namespace SiteReader.UI
             {
                 base.ExpireLayout();
                 sender.Refresh();
+                Owner.ExpirePreview(true);
+                _handleValues(_slider.HandPos);
 
                 _sliding = false;
                 return GH_ObjectResponse.Release;

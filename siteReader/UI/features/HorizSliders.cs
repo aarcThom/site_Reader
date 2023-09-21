@@ -25,6 +25,9 @@ namespace siteReader.UI.features
         private float _lineLeft;
         private float _lineY;
 
+        //PROPERTIES------------------------------------------
+        public List<float> HandPos => _handPos;
+
         public HorizSliders(int numSliders, int handleDiameter, bool drawLine = true)
         {
             //the initial positions - evenly spaced between 0 and 1
@@ -197,10 +200,5 @@ namespace siteReader.UI.features
             return points;
 
         }
-
-
-
-
-
     }
 }

@@ -23,6 +23,10 @@ namespace siteReader.Components
         private List<Color> _colors;
         private List<Color> _prevColors;
 
+        private List<float> _handleValues = new List<float> { 0f, 1f};
+
+        private PointCloud _previewCloud;
+
 
 
         /// <summary>
@@ -53,6 +57,7 @@ namespace siteReader.Components
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
+            pManager.AddNumberParameter("val", "val", "val", GH_ParamAccess.list);
         }
 
         /*
@@ -125,6 +130,8 @@ namespace siteReader.Components
             {
                 SelectField(_selectedField);
             }
+
+            DA.SetDataList(1, _handleValues);
         }
 
         //PREVIEW OVERRIDES AND UI METHODS ---------------------------------------------------
@@ -141,21 +148,25 @@ namespace siteReader.Components
                 case 0:
                     newVColors = LasMethods.uShortToColor(_cld.intensity, _colors);
                     _cld.ApplyColors(newVColors);
+                    _cld.SetFieldToIntensity();
                     break;
 
                 case 1:
                     newVColors = _cld.rgb;
                     _cld.ApplyColors(newVColors);
+                    _cld.SetFieldToRGB();
                     break;
 
                 case 2:
                     newVColors = LasMethods.byteToColor(_cld.classification, _colors);
                     _cld.ApplyColors(newVColors);
+                    _cld.SetFieldToClassOrReturns(_cld.classification);
                     break;
 
                 case 3:
                     newVColors = LasMethods.byteToColor(_cld.numReturns, _colors);
                     _cld.ApplyColors(newVColors);
+                    _cld.SetFieldToClassOrReturns(_cld.numReturns);
                     break;
             }
 
@@ -164,10 +175,43 @@ namespace siteReader.Components
 
         }
 
+        public void SliderValues(List<float> handlePositions)
+        {
+            _handleValues = handlePositions;
+        }
+
         //This region overrides the typical component layout
         public override void CreateAttributes()
         {
-            m_attributes = new SiteReader.UI.DisplayFields(this, SelectField);
+            m_attributes = new SiteReader.UI.DisplayFields(this, SelectField, SliderValues);
+        }
+
+        //need to override this to display the value cropped cloud
+        public override void DrawViewportWires(IGH_PreviewArgs args)
+        {
+            if (_cld != null && _cld.ptCloud != null)
+            {
+
+                if (_cld.currentField != null)
+                {
+                    _previewCloud = new PointCloud();
+                    var cldPts = _cld.ptCloud.GetPoints();
+                    var ptColors = _cld.ptCloud.GetColors();
+
+                    for (int i = 0; i < cldPts.Length; i++)
+                    {
+                        if (_cld.currentField[i] > _handleValues[0] && _cld.currentField[i] < _handleValues[1])
+                            _previewCloud.Add(cldPts[i], ptColors[i]);
+                    }
+                    args.Display.DrawPointCloud(_previewCloud, 2);
+                }
+
+                else
+                {
+                    args.Display.DrawPointCloud(_cld.ptCloud, 2);
+                }
+                
+            }
         }
 
         /// <summary>
