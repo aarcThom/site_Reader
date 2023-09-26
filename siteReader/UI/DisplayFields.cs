@@ -197,18 +197,21 @@ namespace SiteReader.UI
 
                     var maxHeight = _gradientRect.Height * 0.6;
                     var maxCount = valCnts.Max();
+                    var maxVal = vals.Max();
                     var baseY = _gradientRect.Bottom;
 
-                    for (int i = 0; i < 255; i++)
+                    for (int i = 0; i < 256; i++)
                     {
                         if (vals.Contains(i))
                         {
                             int ix = vals.IndexOf(i);
 
-                            var lineX = _gradientRect.Left + _gradientRect.Width * i / 255;
+                            var lineX = _gradientRect.Left + _gradientRect.Width * i / 256;
                             var lineY = (float)(baseY - maxHeight * valCnts[ix] / maxCount);
 
-                            Pen lineCol = new Pen(colors[ix], _gradientRect.Width / 255);
+                            int mapped = 255 * i / maxVal;
+
+                            Pen lineCol = new Pen(colors[mapped], _gradientRect.Width / 256);
 
                             graphics.DrawLine(lineCol, lineX, lineY, lineX, baseY);
                         }

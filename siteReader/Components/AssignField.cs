@@ -9,6 +9,13 @@ using System.Drawing;
 using siteReader.Params;
 using System.Linq;
 using siteReader.Methods;
+using System.Windows.Forms;
+using siteReader.UI.features;
+using Rhino.UI.Interfaces;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Reflection;
+using Grasshopper.GUI.Canvas;
 
 namespace siteReader.Components
 {
@@ -21,7 +28,8 @@ namespace siteReader.Components
 
         private int _selectedField = -1;
         private List<Color> _colors;
-        private List<Color> _prevColors;
+
+        private int _gradientSelection;
 
         private List<float> _handleValues = new List<float> { 0f, 1f};
 
@@ -30,6 +38,9 @@ namespace siteReader.Components
         //the lists for displaying the bar graph
         private List<int> _uniqueFieldVals;
         private List<int> _fieldValCounts;
+
+        //FOR GRABBING EMBEDDED RESOURCES
+        private Assembly _assembly = Assembly.GetExecutingAssembly();
 
 
 
@@ -42,6 +53,8 @@ namespace siteReader.Components
           : base("Assign Field", "Field",
               "Assign the values contained in a LAS field to the point cloud", "Point Clouds")
         {
+            _gradientSelection = 0;
+            _colors = CloudColors.GetColorList(_gradientSelection);
         }
 
         /// <summary>
@@ -50,9 +63,6 @@ namespace siteReader.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             base.RegisterInputParams(pManager);
-            pManager.AddColourParameter("Gradient", "Grad", "The color gradient that will be used to visualize point cloud fields. " +
-            "Note: if you edit the the gradient component inputs, or replace the auto generated gradient component you may get slower compute times and strange results." +
-            "Absolutely feel free to set your own color scheme though!", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -64,53 +74,6 @@ namespace siteReader.Components
             pManager.AddNumberParameter("val", "val", "val", GH_ParamAccess.list);
         }
 
-        /*
-        //adding this so we can add a gradient control without any inputs
-        protected override void BeforeSolveInstance()
-        {
-            base.BeforeSolveInstance();
-
-            if (gradComp == null)
-            {
-                //assign values to the component and doc variables
-                Component = this;
-                GrasshopperDocument = this.OnPingDocument();
-
-                // create a color gradient component
-                gradComp = new Grasshopper.Kernel.Special.GH_GradientControl();
-                gradComp.CreateAttributes();
-
-                // add default values to the grad component parameters
-                var upperLimit = gradComp.Params.Input[1] as Param_Number;
-                upperLimit.PersistentData.ClearData();
-                upperLimit.PersistentData.Append(new GH_Number(255));
-
-                var ghRange = new List<GH_Number>();
-
-                for (int i = 0; i < 256; i++)
-                {
-                    ghRange.Add(new GH_Number(i));
-                }
-
-                var steps = gradComp.Params.Input[2] as Param_Number;
-                steps.PersistentData.AppendRange(ghRange);
-
-
-                //get postion for gradient component
-                float xPos = this.Attributes.Pivot.X - gradComp.Attributes.Bounds.Width - 160;
-                float yPos = this.Attributes.Pivot.Y + gradComp.Attributes.Bounds.Height / 2;
-
-                gradComp.Attributes.Pivot = new System.Drawing.PointF(xPos, yPos);
-
-                //add grad component to document and add to input
-                GrasshopperDocument.AddObject(gradComp, false);
-                this.Params.Input[1].AddSource(gradComp.Params.Output[0]);
-
-
-            }
-        }
-        */
-
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
@@ -118,24 +81,6 @@ namespace siteReader.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             base.SolveInstance(DA);
-
-            List<Color> colors = new List<Color>();
-            if (!DA.GetDataList(1, colors))
-            {
-                return;
-            }
-            else
-            {
-                _colors = colors;
-            }
-
-            // checking if the colors have been updated
-            if (_prevColors != null && _selectedField != -1 && !_colors.SequenceEqual(_prevColors))
-            {
-                SelectField(_selectedField);
-            }
-
-            DA.SetDataList(1, _handleValues);
         }
 
         //PREVIEW OVERRIDES AND UI METHODS ---------------------------------------------------
@@ -175,7 +120,6 @@ namespace siteReader.Components
             }
 
             CountFieldVals();
-            _prevColors = _colors;
             ExpirePreview(true);
 
         }
@@ -224,6 +168,46 @@ namespace siteReader.Components
             }
         }
 
+        // adding the gradient selector to the right click menu
+        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+        {
+            base.AppendAdditionalComponentMenuItems(menu);
+            var gradients = CloudColors.GradNames;
+
+
+            for (int i = 0; i < gradients.Count; i++)
+            {
+                var gradName = gradients[i];
+                Image img;
+
+                if (i == _gradientSelection)
+                {
+                    Stream stream = _assembly.GetManifestResourceStream(
+                    "siteReader.Resources.menus.selected.png");
+                    img = Image.FromStream(stream);
+                }
+                else
+                {
+                    Stream stream = _assembly.GetManifestResourceStream(
+                    "siteReader.Resources.menus.deselected.png");
+                    img = Image.FromStream(stream);
+                }
+                GH_Component.Menu_AppendItem(menu, gradName, Menu_GradientSelect, img);
+            }
+        }
+
+        //the gradient selection event handler
+        public void Menu_GradientSelect(object sender, EventArgs e)
+        {
+            if (sender is ToolStripMenuItem item && CloudColors.GradNames.Contains(item.Text))
+            {
+                _gradientSelection = CloudColors.GradNames.IndexOf(item.Text);
+                _colors = CloudColors.GetColorList(_gradientSelection);
+                SelectField(_selectedField);
+                Attributes.ExpireLayout();
+            }
+        }
+
         //Other methods
         public void FilterFields()
         {
@@ -242,7 +226,7 @@ namespace siteReader.Components
 
         private void CountFieldVals()
         {
-            var formattedVals = _cld.currentField.Select(val => (int)(val * 255)).ToList();
+            var formattedVals = _cld.currentField.Select(val => (int)(val * 256)).ToList();
             formattedVals.Sort();
             _uniqueFieldVals = new HashSet<int>(formattedVals).ToList();
 
