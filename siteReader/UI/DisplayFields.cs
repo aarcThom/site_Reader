@@ -202,7 +202,7 @@ namespace SiteReader.UI
 
                     for (int i = 0; i < 256; i++)
                     {
-                        if (vals.Contains(i))
+                        if (vals.Contains(i) && maxVal > 0)
                         {
                             int ix = vals.IndexOf(i);
 

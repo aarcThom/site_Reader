@@ -205,6 +205,7 @@ namespace siteReader.Components
                 _colors = CloudColors.GetColorList(_gradientSelection);
                 SelectField(_selectedField);
                 Attributes.ExpireLayout();
+                ExpirePreview(true);
             }
         }
 
