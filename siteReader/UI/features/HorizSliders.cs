@@ -16,6 +16,7 @@ namespace siteReader.UI.features
         private List<float> _maxPos;
 
         private RectangleF[] _drawRecs;
+        private PointF[] _handleCenters;
 
         private int _numSliders;
         private int _dia;
@@ -26,15 +27,18 @@ namespace siteReader.UI.features
         private float _lineY;
 
         //PROPERTIES------------------------------------------
-        public List<float> HandPos => _handPos;
+        public List<float> HandPos => _handPos; // the normalized positions of the handles
+        public PointF[] HandCenters => _handleCenters; // the x coordinates for the center of each handle
+
 
         public HorizSliders(int numSliders, int handleDiameter, bool drawLine = true)
         {
             //the initial positions - evenly spaced between 0 and 1
             _handPos = Enumerable.Range(0, numSliders).Select(x => x / ((float)(numSliders - 1))).ToList();
 
-            //the initial draw rectangles for the handles
+            //the initial draw rectangles for the handles & float center positions
             _drawRecs = new RectangleF[numSliders];
+            _handleCenters = new PointF[numSliders];
 
             //the initial max and min positions each slider can be slid to
             _minPos = new List<float> { 0 };
@@ -51,6 +55,7 @@ namespace siteReader.UI.features
             _drawLine = drawLine;
         }
 
+        // METHODS--------------------------------------------------------------------------------------------
         public RectangleF[] LayoutSlider(float leftSide, float top, float width)
         {
             RectangleF[] grabRecs = new RectangleF[_numSliders];
@@ -60,32 +65,33 @@ namespace siteReader.UI.features
                 //if two handles are sharing a spot and the current handle is on the right side
                 if (TestProximityLeft(i))
                 {
-                    xPos = leftSide + width * _handPos[i] - _dia / 2;
-                    grabRecs[i] = new RectangleF(xPos + _dia / 2, top, _dia / 2, _dia);
+                    xPos = leftSide + width * _handPos[i] - _dia / 2f;
+                    grabRecs[i] = new RectangleF(xPos + _dia / 2f, top, _dia / 2f, _dia);
                     
                 }
 
                 //if two handles are sharing a spot and the current handle is on the left side
                 else if (TestProximityRight(i))
                 {
-                    xPos = leftSide + width * _handPos[i] - _dia / 2;
-                    grabRecs[i] = new RectangleF(xPos, top, _dia / 2, _dia);
+                    xPos = leftSide + width * _handPos[i] - _dia / 2f;
+                    grabRecs[i] = new RectangleF(xPos, top, _dia / 2f, _dia);
                 }
 
                 else
                 {
-                    xPos = leftSide + width * _handPos[i] - _dia / 2;
+                    xPos = leftSide + width * _handPos[i] - _dia / 2f;
                     grabRecs[i] = new RectangleF(xPos, top, _dia, _dia);
                 }
 
                 _drawRecs[i] = new RectangleF(xPos, top, _dia, _dia);
+                _handleCenters[i] = new PointF(xPos + _dia / 2f, top + _dia / 2f);
 
 
             }
 
             _lineWidth = width;
             _lineLeft = leftSide;
-            _lineY = top + _dia / 2;
+            _lineY = top + _dia / 2f;
       
             return grabRecs;
         }

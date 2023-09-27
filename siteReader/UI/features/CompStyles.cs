@@ -26,5 +26,7 @@ namespace siteReader.UI.features
         public static Brush RadioUnclicked => new SolidBrush(Color.AliceBlue);
         public static Brush RadioClicked => new SolidBrush(Color.Black);
 
+        public static Brush GraphBackground => new SolidBrush(Color.Silver);
+
     }
 }

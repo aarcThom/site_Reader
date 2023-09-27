@@ -40,7 +40,7 @@ namespace siteReader.Components
         private List<int> _fieldValCounts;
 
         //FOR GRABBING EMBEDDED RESOURCES
-        private Assembly _assembly = Assembly.GetExecutingAssembly();
+        private readonly Assembly _assembly = Assembly.GetExecutingAssembly();
 
 
 
@@ -243,23 +243,14 @@ namespace siteReader.Components
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return null;
-            }
-        }
+        /// //You can add image files to your project resources and access them like this:
+        // return Resources.IconForThisComponent;
+        protected override System.Drawing.Bitmap Icon => null;
 
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.
         /// MAKE SURE TO CHANGE THIS IF USING THE TEMPLATE!
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("31D0F86A-21AA-4AB1-A071-EB77551C4B70"); }
-        }
+        public override Guid ComponentGuid => new Guid("31D0F86A-21AA-4AB1-A071-EB77551C4B70");
     }
 }

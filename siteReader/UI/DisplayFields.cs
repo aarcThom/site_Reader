@@ -42,15 +42,17 @@ namespace SiteReader.UI
         private Point _ptLeft;
         private Point _ptRight;
 
-        //the radiorectangles for buttons
+        //the radio rectangles for buttons
         private RadioButtons _radRecs;
 
         //the rectangle for the gradient slider
-        private RectangleF _gradientRect;
+        private RectangleF _gradientBox;
+        //the rectangle for the values and sliders themselves
+        private RectangleF _sliderValBox;
 
         //slider handles
-        private int _numHandles = 2;
-        private int _handleDiameter = 8;
+        private readonly int _numHandles = 2;
+        private readonly int _handleDiameter = 8;
         private HorizSliders _slider;
         private RectangleF[] _handleRecs;
         private int _currentHandle;
@@ -124,13 +126,16 @@ namespace SiteReader.UI
 
             //the gradient graph rectangle
             var gradRectTop = _radRecs.Buttons.Last().Bottom + vertSpace;
-            _gradientRect = new RectangleF(left, gradRectTop, width, 50);
-            _gradientRect.Inflate(-sideSpacer * 2, 0);
+            _gradientBox = new RectangleF(left, gradRectTop, width, 50);
+            _gradientBox.Inflate(-sideSpacer * 2, 0);
+
+            _sliderValBox = _gradientBox;
+            _sliderValBox.Inflate(_handleDiameter / -2f , _handleDiameter / -2f);
 
             //the sliders 
             var sliderTop = gradRectTop + horizSpace;
-            var sliderLeft = left + sideSpacer + _handleDiameter / 2;
-            var sliderRight = right - sideSpacer - _handleDiameter / 2;
+            var sliderLeft = _sliderValBox.Left;
+            var sliderRight = _sliderValBox.Right;
             var sliderWidth = sliderRight - sliderLeft;
 
             if (_sliding)
@@ -141,7 +146,7 @@ namespace SiteReader.UI
             _handleRecs = _slider.LayoutSlider(sliderLeft, sliderTop, sliderWidth);
 
             //the filter button
-            var filterButTop = _gradientRect.Bottom + vertSpace;
+            var filterButTop = _gradientBox.Bottom + vertSpace;
             _filterButton = new RectangleF(left, filterButTop, width, 20);
             _filterButton.Inflate(-sideSpacer * 2, 0);
         }
@@ -184,9 +189,18 @@ namespace SiteReader.UI
                 //radio buttons
                 _radRecs.Draw(outLine, font, font, graphics, _chosenField);
 
-                //drawing the gradient graph outline
-                var gradRect = new RectangleF[1] { _gradientRect };
+                //drawing the gradient graph outline and background
+                var gradRect = new RectangleF[1] { _gradientBox };
+                graphics.FillRectangles(CompStyles.GraphBackground, gradRect);
                 graphics.DrawRectangles(outLine, gradRect);
+
+                //draw the slider bars for the graph
+                foreach (var cntr in _slider.HandCenters)
+                {
+                    var ptBase = new PointF(cntr.X, _sliderValBox.Bottom);
+                    Pen handleLine = new Pen(Color.AliceBlue, 0.25f);
+                    graphics.DrawLine(handleLine, cntr, ptBase);
+                }
 
                 //drawing the gradient graphs
                 if (_chosenField >= 0)
@@ -195,23 +209,23 @@ namespace SiteReader.UI
                     var valCnts = _fValCounts();
                     var colors = _fColors();
 
-                    var maxHeight = _gradientRect.Height * 0.6;
+                    var maxHeight = _sliderValBox.Height * 0.6;
                     var maxCount = valCnts.Max();
                     var maxVal = vals.Max();
-                    var baseY = _gradientRect.Bottom;
+                    var baseY = _sliderValBox.Bottom;
 
-                    for (int i = 0; i < 256; i++)
+                    for (int i = 0; i < 257; i++) //need to look deeper into why classifications coming in at 256
                     {
-                        if (vals.Contains(i) && maxVal > 0)
+                        if (vals.Contains(i) && maxVal > 0) 
                         {
-                            int ix = vals.IndexOf(i);
+                            var ix = vals.IndexOf(i);
 
-                            var lineX = _gradientRect.Left + _gradientRect.Width * i / 256;
-                            var lineY = (float)(baseY - maxHeight * valCnts[ix] / maxCount);
+                            var lineX = _sliderValBox.Left + _sliderValBox.Width * i / 256;
+                            var lineY = (float)(baseY - 3 - maxHeight * valCnts[ix] / maxCount);
 
-                            int mapped = 255 * i / maxVal;
+                            var mapped = 255 * i / maxVal;
 
-                            Pen lineCol = new Pen(colors[mapped], _gradientRect.Width / 256);
+                            Pen lineCol = new Pen(colors[mapped], _sliderValBox.Width / 256);
 
                             graphics.DrawLine(lineCol, lineX, lineY, lineX, baseY);
                         }
@@ -223,6 +237,8 @@ namespace SiteReader.UI
                 //draw the slider
                 _slider.DrawSlider(graphics, outLine);
 
+
+
                 //the draw the filter button
                 GH_Capsule filterButton = GH_Capsule.CreateTextCapsule(_filterButton, _filterButton, GH_Palette.Black, "Filter Field Values");
                 filterButton.Render(graphics, Selected, Owner.Locked, false);
@@ -233,6 +249,7 @@ namespace SiteReader.UI
         }
 
 
+        //EVENT HANDLERS--------------------------------------------------------------------------------------------------
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
             if (e.Button == MouseButtons.Left && Owner.RuntimeMessageLevel == GH_RuntimeMessageLevel.Blank)
