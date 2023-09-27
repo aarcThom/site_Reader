@@ -10,6 +10,7 @@ using Rhino;
 using Aardvark.Base;
 using Rhino.Commands;
 using System.Linq;
+using Aardvark.Base.Sorting;
 
 namespace siteReader.Params
 {
@@ -26,12 +27,15 @@ namespace siteReader.Params
 
         private List<ushort> _intensity;
         private List<Color> _rgb;
+        private List<ushort> _r;
+        private List<ushort> _g;
+        private List<ushort> _b;
         private List<byte> _classification;
         private List<byte> _numReturns;
 
         private List<float> _currentField; //used for cropping by value - floats between 0 and 1
 
-        //laszip
+        //Laszip
         private LASzip.Net.laszip _laszip;
 
         //geometry
@@ -40,26 +44,30 @@ namespace siteReader.Params
         //PROPERTIES---------------------------------------------------------
 
         //aspr / .las properties
-        public string path => _path;
-        public Dictionary<string, float> header => _header;
-        public Dictionary<string, string> vlr => _vlr;
-        public byte pointFormat => _format;
+        public string Path => _path;
+        public Dictionary<string, float> Header => _header;
+        public Dictionary<string, string> Vlr => _vlr;
+        public byte PointFormat => _format;
 
-        public List<ushort> intensity => _intensity;
-        public List<Color> rgb => _rgb;
-        public List<byte> classification => _classification;
-        public List<byte> numReturns => _numReturns;
+        public List<ushort> Intensity => _intensity;
+        public List<Color> Rgb => _rgb;
+        public List<ushort> R => _r;
+        public List<ushort> G => _g;
+        public List<ushort> B => _b;
 
-        public List<float> currentField => _currentField;
+        public List<byte> Classification => _classification;
+        public List<byte> NumReturns => _numReturns;
 
-        //laszip
-        public LASzip.Net.laszip laszip => _laszip;
+        public List<float> CurrentField => _currentField;
+
+        //Laszip
+        public LASzip.Net.laszip Laszip => _laszip;
 
         //geometry
-        public PointCloud ptCloud => _ptCloud;
+        public PointCloud PtCloud => _ptCloud;
 
         //needed by components
-        public float displayDensity { get; set; }
+        public float DisplayDensity { get; set; }
 
 
         //CONSTRUCTORS--------------------------------------------------------
@@ -78,30 +86,42 @@ namespace siteReader.Params
 
         public AsprCld(AsprCld cld)
         {
-            _path = cld.path;
-            _laszip = cld.laszip;
+            _path = cld.Path;
+            _laszip = cld.Laszip;
 
-            _vlr = cld.vlr.Copy();
-            _header = cld.header.Copy();
-            _format = cld.pointFormat;
+            _vlr = cld.Vlr.Copy();
+            _header = cld.Header.Copy();
+            _format = cld.PointFormat;
 
-            _intensity = cld.intensity.Copy();
-            _rgb = cld.rgb.Copy();
-            _classification = cld.classification.Copy();
-            _numReturns = cld.numReturns.Copy();
 
-            _ptCloud = new PointCloud(cld.ptCloud);
+            _intensity = cld.Intensity.Copy();
+            _rgb = cld.Rgb.Copy();
+            _r = cld.R.Copy();
+            _g = cld.G.Copy();
+            _b = cld.B.Copy();
+            _classification = cld.Classification.Copy();
+            _numReturns = cld.NumReturns.Copy();
+
+            _ptCloud = new PointCloud(cld.PtCloud);
             this.m_value = _ptCloud;
         }
 
         public AsprCld(PointCloud transformedCloud, AsprCld cld)
         {
-            _path = cld.path;
-            _laszip = cld.laszip;
+            _path = cld.Path;
+            _laszip = cld.Laszip;
 
-            _vlr = cld.vlr.Copy();
-            _header = cld.header.Copy();
-            _format = cld.pointFormat;
+            _vlr = cld.Vlr.Copy();
+            _header = cld.Header.Copy();
+            _format = cld.PointFormat;
+
+            _intensity = cld.Intensity.Copy();
+            _rgb = cld.Rgb.Copy();
+            _r = cld.R.Copy();
+            _g = cld.G.Copy();
+            _b = cld.B.Copy();
+            _classification = cld.Classification.Copy();
+            _numReturns = cld.NumReturns.Copy();
 
             _ptCloud = transformedCloud;
             this.m_value = _ptCloud;
@@ -126,13 +146,7 @@ namespace siteReader.Params
             args.Pipeline.DrawPointCloud(this.m_value, args.Thickness); 
         }
 
-        public BoundingBox ClippingBox
-        {
-            get
-            {
-                return this.m_value.GetBoundingBox(true);
-            }
-        }
+        public BoundingBox ClippingBox => this.m_value.GetBoundingBox(true);
 
         //IGH_BakeAwareObject METHODS
         public void BakeGeometry(RhinoDoc doc, List<Guid> obj_ids)
@@ -145,7 +159,7 @@ namespace siteReader.Params
             obj_ids.Add(doc.Objects.AddPointCloud(m_value, att));
         }
 
-        public bool IsBakeCapable => ptCloud != null;
+        public bool IsBakeCapable => PtCloud != null;
 
 
         //GH_GOO METHODS
@@ -190,7 +204,8 @@ namespace siteReader.Params
         //CLOUD METHODS----------------------------------------------------
         public void GetPointCloud(List<Mesh> cropShapes, bool inside)
         {
-            (_ptCloud, _intensity, _rgb, _classification, _numReturns) = LasMethods.GetPtCloud(this, displayDensity, cropShapes, inside);
+            (_ptCloud, _intensity, _rgb, _r, _g, _b, _classification, _numReturns) = 
+                LasMethods.GetPtCloud(this, DisplayDensity, cropShapes, inside);
         }
 
         public void GetPreview()
@@ -223,7 +238,7 @@ namespace siteReader.Params
             _currentField = result;
         }
 
-        public void SetFieldToIntensity()
+        public void SetFieldToIntensOrClrChannel()
         {
             List<float> result = new List<float>();
 

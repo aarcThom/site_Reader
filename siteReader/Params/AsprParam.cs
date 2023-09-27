@@ -125,12 +125,12 @@ namespace siteReader.Params
             // REMOVED BECAUSE I AM GOING TO HIDE THIS PARAMETER AND DON'T
             // WANT TO CLUTTER THE ASPRCLD CLASS WITH ANOTHER CONSTRUCTOR
             /*
-            PointCloud ptCloud;
-            var result = LoadSingular(out ptCloud);
+            PointCloud PtCloud;
+            var result = LoadSingular(out PtCloud);
 
             if(result == GH_GetterResult.success)
             {
-                value = new AsprCld(ptCloud);
+                value = new AsprCld(PtCloud);
             }
             return result;
             */
@@ -148,11 +148,11 @@ namespace siteReader.Params
 
             if (go.GetMultiple(1, 0) == Rhino.Input.GetResult.Cancel)
             {
-                ptCloud = null;
+                PtCloud = null;
                 return GH_GetterResult.cancel;
             }
 
-            ptCloud = new PointCloud();
+            PtCloud = new PointCloud();
 
             for (int i = 0; i < go.ObjectCount; i++)
             {
@@ -164,7 +164,7 @@ namespace siteReader.Params
                 {
                     var point = obj.Point().Location;
                     var color = rhinoObj.Attributes.ObjectColor;
-                    ptCloud.Add(point, color);
+                    PtCloud.Add(point, color);
                 }
                 else if (rhinoObj.ObjectType == ObjectType.PointSet)
                 {
@@ -172,7 +172,7 @@ namespace siteReader.Params
                     {
                         foreach (var pt in cloud.AsEnumerable())
                         {
-                            ptCloud.Add(pt.Location, pt.Normal, pt.Color);
+                            PtCloud.Add(pt.Location, pt.Normal, pt.Color);
                         }
                     }
                 }

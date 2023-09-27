@@ -15,9 +15,9 @@ namespace siteReader.Methods
     public static class Utility
     {
         /// <summary>
-        /// tests if file path is .las or .laz
+        /// tests if file Path is .las or .laz
         /// </summary>
-        /// <param name="path">the file path to test</param>
+        /// <param name="path">the file Path to test</param>
         /// <returns>true if .las or .laz</returns>
         public static bool TestLasExt(string path)
         {
@@ -55,7 +55,7 @@ namespace siteReader.Methods
         }
 
         /// <summary>
-        /// Formats header dictionary for GH Textural output
+        /// Formats Header dictionary for GH Textural output
         /// </summary>
         /// <param name="floatDict"></param>
         /// <param name="owner"></param>
@@ -67,7 +67,7 @@ namespace siteReader.Methods
             if (floatDict.Count == 0)
             {
                 owner.AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
-                    "LAS header not found. The LAS spec. needs a header. " +
+                    "LAS Header not found. The LAS spec. needs a Header. " +
                     "Double check your data source as this will probably cause errors down the road.");
                 return ghOut;
             }

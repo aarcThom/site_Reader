@@ -49,7 +49,7 @@ namespace siteReader.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("file path", "path", "Path to LAS or LAZ file.", GH_ParamAccess.item);
+            pManager.AddTextParameter("file Path", "Path", "Path to LAS or LAZ file.", GH_ParamAccess.item);
             pManager.AddMeshParameter("Crop Shape", "Crop", "Provide breps or meshes to crop your cloud upon import.", GH_ParamAccess.list);
             pManager[1].Optional = true;
             pManager.AddBooleanParameter("Inside Crop", "InCrp", "If set to true (default), pts will be kept inside the crop shape. " +
@@ -61,7 +61,7 @@ namespace siteReader.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("Header", "header", "Header information.", GH_ParamAccess.list);
+            pManager.AddTextParameter("Header", "Header", "Header information.", GH_ParamAccess.list);
             pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
                 GH_ParamAccess.list);
             pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
@@ -127,10 +127,10 @@ namespace siteReader.Components
             if (_prevPath != currentPath)
             {
                 _asprCld = new AsprCld(currentPath);
-                _asprCld.displayDensity = _cloudDensity;
+                _asprCld.DisplayDensity = _cloudDensity;
 
-                _headerOut = Utility.FloatDictGhOut(_asprCld.header, this);
-                _vlrOut = Utility.StringDictGhOut(_asprCld.vlr);
+                _headerOut = Utility.FloatDictGhOut(_asprCld.Header, this);
+                _vlrOut = Utility.StringDictGhOut(_asprCld.Vlr);
 
                 _prevPath = currentPath;
 
@@ -140,7 +140,7 @@ namespace siteReader.Components
                 } 
                 else
                 {
-                    _asprCld.displayDensity = 2; // setting the cloud density above 1 so that the getCloud method triggers on user button click
+                    _asprCld.DisplayDensity = 2; // setting the cloud density above 1 so that the getCloud method triggers on user button click
                 }
             }
 
@@ -190,9 +190,9 @@ namespace siteReader.Components
 
         public void ZoomCloud()
         {
-            if (_importCloud && _asprCld.ptCloud != null)
+            if (_importCloud && _asprCld.PtCloud != null)
             {
-                var bBox = _asprCld.ptCloud.GetBoundingBox(true);
+                var bBox = _asprCld.PtCloud.GetBoundingBox(true);
                 RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.ZoomBoundingBox(bBox);
                 RhinoDoc.ActiveDoc.Views.ActiveView.Redraw();
             }
@@ -207,9 +207,9 @@ namespace siteReader.Components
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_asprCld != null && _asprCld.ptCloud != null && _importCloud)
+            if (_asprCld != null && _asprCld.PtCloud != null && _importCloud)
             {
-                args.Display.DrawPointCloud(_asprCld.ptCloud, 2);
+                args.Display.DrawPointCloud(_asprCld.PtCloud, 2);
             }
 
         }
@@ -219,9 +219,9 @@ namespace siteReader.Components
         {
             get
             {
-                if (_asprCld != null && _asprCld.ptCloud != null && _importCloud)
+                if (_asprCld != null && _asprCld.PtCloud != null && _importCloud)
                 {
-                    return _asprCld.ptCloud.GetBoundingBox(true);
+                    return _asprCld.PtCloud.GetBoundingBox(true);
                 }
 
                 return base.ClippingBox;
@@ -237,9 +237,9 @@ namespace siteReader.Components
         private void GetCloud(IGH_DataAccess da, bool overRide = false)
         {
             // I added the override bool to initialize the pointcloud regardless of import status when a new file is referenced
-            if (_asprCld != null && _asprCld.displayDensity != _cloudDensity && _importCloud || overRide)
+            if (_asprCld != null && _asprCld.DisplayDensity != _cloudDensity && _importCloud || overRide)
             {
-                _asprCld.displayDensity = _cloudDensity;
+                _asprCld.DisplayDensity = _cloudDensity;
                 _asprCld.GetPointCloud(_cropShapes, _insideCrop);
                 da.SetData(2, new AsprCld(_asprCld));
                 RhinoDoc.ActiveDoc.Views.Redraw();

@@ -64,7 +64,7 @@ namespace SiteReader.UI
         private RectangleF _filterButton;
 
         // the selections
-        private string[] _fields = new string[4] { "Intensity", "RGB", "Classification", "Number of Returns" };
+        private string[] _fields = new string[6] { "Intensity", "Red Channel", "Green Channel", "Blue Channel", "Classification", "Number of Returns" };
 
 
         //CONSTRUCTOR -------------------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ namespace SiteReader.UI
 
             const int vertSpace = 10;
             const int sideSpacer = 4;
-            const int extraHeight = 190;
+            const int extraHeight = 230;
             const int horizSpace = 8;
 
             //here we can modify the bounds

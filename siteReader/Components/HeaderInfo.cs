@@ -14,8 +14,8 @@ namespace siteReader.Components
         /// Initializes a new instance of the MyComponent1 class.
         /// </summary>
         public HeaderInfo()
-          : base("LAS header info", "header",
-            "Return a .las cloud's header fields as individual parameters",
+          : base("LAS Header info", "Header",
+            "Return a .las cloud's Header fields as individual parameters",
             "SiteReader", "Point Clouds")
         {
         }
@@ -48,25 +48,25 @@ namespace siteReader.Components
             AsprCld cld = new AsprCld();
             if (!DA.GetData(0, ref cld)) return;
 
-            if (cld.header == null) 
+            if (cld.Header == null) 
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no header. Most likely a rhino referenced point cloud.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no Header. Most likely a rhino referenced point cloud.");
                 return;
             }
 
-            int ptCount = (int)cld.header["Number of Points"];
+            int ptCount = (int)cld.Header["Number of Points"];
 
             Point3d minPt = new Point3d();
-            minPt.X = cld.header["Min X"];
-            minPt.Y = cld.header["Min Y"];
-            minPt.Z = cld.header["Min Z"];
+            minPt.X = cld.Header["Min X"];
+            minPt.Y = cld.Header["Min Y"];
+            minPt.Z = cld.Header["Min Z"];
 
             Point3d maxPt = new Point3d();
-            maxPt.X = cld.header["Max X"];
-            maxPt.Y = cld.header["Max Y"];
-            maxPt.Z = cld.header["Max Z"];
+            maxPt.X = cld.Header["Max X"];
+            maxPt.Y = cld.Header["Max Y"];
+            maxPt.Z = cld.Header["Max Z"];
 
-            int ptFrmt = Convert.ToInt32(cld.header["Point Format"]);
+            int ptFrmt = Convert.ToInt32(cld.Header["Point Format"]);
 
 
             DA.SetData(0, ptCount);

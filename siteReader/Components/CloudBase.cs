@@ -62,7 +62,7 @@ namespace siteReader.Components
                 _prevCld = null;
                 return;
             }
-            else if (cld.ptCloud == null || cld.ptCloud.Count == 0)
+            else if (cld.PtCloud == null || cld.PtCloud.Count == 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no points");
                 return;
@@ -82,9 +82,9 @@ namespace siteReader.Components
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_cld != null && _cld.ptCloud != null)
+            if (_cld != null && _cld.PtCloud != null)
             {
-                args.Display.DrawPointCloud(_cld.ptCloud, 2);
+                args.Display.DrawPointCloud(_cld.PtCloud, 2);
             }
         }
         
@@ -94,9 +94,9 @@ namespace siteReader.Components
         {
             get
             {
-                if (_cld != null && _cld.ptCloud != null)
+                if (_cld != null && _cld.PtCloud != null)
                 {
-                    return _cld.ptCloud.GetBoundingBox(true);
+                    return _cld.PtCloud.GetBoundingBox(true);
                 }
 
                 return base.ClippingBox;

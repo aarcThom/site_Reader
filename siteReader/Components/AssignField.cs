@@ -95,27 +95,39 @@ namespace siteReader.Components
             switch (selection)
             {
                 case 0:
-                    newVColors = LasMethods.uShortToColor(_cld.intensity, _colors);
+                    newVColors = LasMethods.UShortToColor(_cld.Intensity, _colors);
                     _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToIntensity();
+                    _cld.SetFieldToIntensOrClrChannel();
                     break;
 
                 case 1:
-                    newVColors = _cld.rgb;
+                    newVColors = LasMethods.UShortToColor(_cld.R, _colors);
                     _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToRGB();
+                    _cld.SetFieldToIntensOrClrChannel();
                     break;
 
                 case 2:
-                    newVColors = LasMethods.byteToColor(_cld.classification, _colors);
+                    newVColors = LasMethods.UShortToColor(_cld.G, _colors);
                     _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToClassOrReturns(_cld.classification);
+                    _cld.SetFieldToIntensOrClrChannel();
                     break;
 
                 case 3:
-                    newVColors = LasMethods.byteToColor(_cld.numReturns, _colors);
+                    newVColors = LasMethods.UShortToColor(_cld.B, _colors);
                     _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToClassOrReturns(_cld.numReturns);
+                    _cld.SetFieldToIntensOrClrChannel();
+                    break;
+
+                case 4:
+                    newVColors = LasMethods.ByteToColor(_cld.Classification, _colors);
+                    _cld.ApplyColors(newVColors);
+                    _cld.SetFieldToClassOrReturns(_cld.Classification);
+                    break;
+
+                case 5:
+                    newVColors = LasMethods.ByteToColor(_cld.NumReturns, _colors);
+                    _cld.ApplyColors(newVColors);
+                    _cld.SetFieldToClassOrReturns(_cld.NumReturns);
                     break;
             }
 
@@ -153,17 +165,17 @@ namespace siteReader.Components
         //need to override this to display the value cropped cloud
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_cld != null && _cld.ptCloud != null)
+            if (_cld != null && _cld.PtCloud != null)
             {
 
-                if (_cld.currentField != null && _previewCloud != null)
+                if (_cld.CurrentField != null && _previewCloud != null)
                 {
                     args.Display.DrawPointCloud(_previewCloud, 2);
                 }
 
                 else
                 {
-                    args.Display.DrawPointCloud(_cld.ptCloud, 2);
+                    args.Display.DrawPointCloud(_cld.PtCloud, 2);
                 }
             }
         }
@@ -212,22 +224,22 @@ namespace siteReader.Components
         //Other methods
         public void FilterFields()
         {
-            if (_cld.currentField == null) return;
+            if (_cld.CurrentField == null) return;
 
             _previewCloud = new PointCloud();
-            var cldPts = _cld.ptCloud.GetPoints();
-            var ptColors = _cld.ptCloud.GetColors();
+            var cldPts = _cld.PtCloud.GetPoints();
+            var ptColors = _cld.PtCloud.GetColors();
 
             for (int i = 0; i < cldPts.Length; i++)
             {
-                if (_cld.currentField[i] >= _handleValues[0] && _cld.currentField[i] <= _handleValues[1])
+                if (_cld.CurrentField[i] >= _handleValues[0] && _cld.CurrentField[i] <= _handleValues[1])
                     _previewCloud.Add(cldPts[i], ptColors[i]);
             }
         }
 
         private void CountFieldVals()
         {
-            var formattedVals = _cld.currentField.Select(val => (int)(val * 256)).ToList();
+            var formattedVals = _cld.CurrentField.Select(val => (int)(val * 256)).ToList();
             formattedVals.Sort();
             _uniqueFieldVals = new HashSet<int>(formattedVals).ToList();
 

@@ -44,7 +44,7 @@ namespace siteReader.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("file path", "path", "Path to LAS or LAZ file.", GH_ParamAccess.item);
+            pManager.AddTextParameter("file Path", "Path", "Path to LAS or LAZ file.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace siteReader.Components
 
             if (_importCloud)
             {
-                if (_asprCld.ptCloud == null || _asprCld.ptCloud.Count == 0)
+                if (_asprCld.PtCloud == null || _asprCld.PtCloud.Count == 0)
                 {
                     _asprCld.GetPreview();
                     RhinoDoc.ActiveDoc.Views.Redraw();
@@ -138,9 +138,9 @@ namespace siteReader.Components
 
         public void ZoomCloud()
         {
-            if (_importCloud && _asprCld.ptCloud != null)
+            if (_importCloud && _asprCld.PtCloud != null)
             {
-                var bBox = _asprCld.ptCloud.GetBoundingBox(true);
+                var bBox = _asprCld.PtCloud.GetBoundingBox(true);
                 RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.ZoomBoundingBox(bBox);
                 RhinoDoc.ActiveDoc.Views.ActiveView.Redraw();
             }
@@ -155,9 +155,9 @@ namespace siteReader.Components
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_asprCld != null && _asprCld.ptCloud != null && _importCloud)
+            if (_asprCld != null && _asprCld.PtCloud != null && _importCloud)
             {
-                args.Display.DrawPointCloud(_asprCld.ptCloud, 2);
+                args.Display.DrawPointCloud(_asprCld.PtCloud, 2);
             }
 
         }
@@ -167,9 +167,9 @@ namespace siteReader.Components
         {
             get
             {
-                if (_asprCld != null && _asprCld.ptCloud != null && _importCloud)
+                if (_asprCld != null && _asprCld.PtCloud != null && _importCloud)
                 {
-                    return _asprCld.ptCloud.GetBoundingBox(true);
+                    return _asprCld.PtCloud.GetBoundingBox(true);
                 }
 
                 return base.ClippingBox;

@@ -23,12 +23,12 @@ namespace siteReader.Methods
         /// <summary>
         /// decodes and formats the .las VLRs and returns a dictionary of values if any
         /// </summary>
-        /// <param name="vlr">the list of vlrs read by laszip</param>
-        /// <returns>vlr key/value pairs</returns>
+        /// <param name="vlr">the list of vlrs read by Laszip</param>
+        /// <returns>Vlr key/value pairs</returns>
         public static Dictionary<string, string> VlrDict(AsprCld cld)
         {
-            var lz = cld.laszip;
-            var path = cld.path;
+            var lz = cld.Laszip;
+            var path = cld.Path;
 
 
             Dictionary<string, string> vlrDict = new Dictionary<string, string>();
@@ -75,15 +75,15 @@ namespace siteReader.Methods
         }
 
         /// <summary>
-        /// Retrieves pertinent information from the .las file's header
+        /// Retrieves pertinent information from the .las file's Header
         /// </summary>
         /// <param name="ptCloud"></param>
         /// <param name="curPath"></param>
         /// <returns></returns>
         public static Dictionary<string, float> HeaderDict(AsprCld cld)
         {
-            var lz = cld.laszip;
-            var path = cld.path;
+            var lz = cld.Laszip;
+            var path = cld.Path;
 
 
             Dictionary<string, float> headerDict = new Dictionary<string, float>();
@@ -161,8 +161,8 @@ namespace siteReader.Methods
         /// <returns></returns>
         public static byte GetPointFormat(AsprCld cld)
         {
-            var lz = cld.laszip;
-            var path = cld.path;
+            var lz = cld.Laszip;
+            var path = cld.Path;
 
             byte format = 0;
 
@@ -177,7 +177,7 @@ namespace siteReader.Methods
         }
 
         /// <summary>
-        /// Tests if a given .las pointFormat contains an RGB field
+        /// Tests if a given .las PointFormat contains an Rgb field
         /// </summary>
         /// <param name="format"></param>
         /// <returns></returns>
@@ -192,15 +192,19 @@ namespace siteReader.Methods
             return false;
         }
 
-        public static (PointCloud, List<ushort>, List<Color>, List<byte>, List<byte>) GetPtCloud(AsprCld cld, float density, List<Mesh> crops, bool inside)
+        public static (PointCloud, List<ushort>, List<Color>, List<ushort>, List<ushort>, List<ushort>, List<byte>, List<byte>) 
+            GetPtCloud(AsprCld cld, float density, List<Mesh> crops, bool inside)
         {
-            var lz = cld.laszip;
-            var path = cld.path;
-            var header = cld.header;
-            var format = cld.pointFormat;
+            var lz = cld.Laszip;
+            var path = cld.Path;
+            var header = cld.Header;
+            var format = cld.PointFormat;
 
             var intensity = new List<ushort>();
             var rgb = new List<Color>();
+            var r = new List<ushort>();
+            var g = new List<ushort>();
+            var b = new List<ushort>();
             var classification = new List<byte>();
             var numReturns = new List<byte>();
 
@@ -238,7 +242,13 @@ namespace siteReader.Methods
                     {
                         ptCloud.Add(rPoint);
                         intensity.Add(lsPt.intensity);
-                        if (hasRGB) rgb.Add(Utility.ConvertRGB(lsPt.rgb));
+                        if (hasRGB)
+                        {
+                            rgb.Add(Utility.ConvertRGB(lsPt.rgb));
+                            r.Add(Convert.ToUInt16(lsPt.rgb[0] / 256));
+                            g.Add(Convert.ToUInt16(lsPt.rgb[1] / 256));
+                            b.Add(Convert.ToUInt16(lsPt.rgb[2] / 256));
+                        }
                         classification.Add(lsPt.classification);
                         numReturns.Add(lsPt.number_of_returns);
                     }
@@ -249,10 +259,10 @@ namespace siteReader.Methods
             lz.close_reader();
 
 
-            return (ptCloud, intensity, rgb, classification, numReturns);
+            return (ptCloud, intensity, rgb, r, g, b, classification, numReturns);
         }
 
-        // SO IT TURNS OUT RGB IS REALLY THE ONLY FORMAT SPECIFIC FIELD
+        // SO IT TURNS OUT Rgb IS REALLY THE ONLY FORMAT SPECIFIC FIELD
         // IF YOU NEED IT FOR SOME OTHER FIELDS, RESURRECT THIS SWITCH METHOD
         /*
         private static bool ContainsField(string field, byte format)
@@ -261,22 +271,22 @@ namespace siteReader.Methods
 
             switch (field)
             {
-                case "intensity":
+                case "Intensity":
                     var iList = new List<byte> {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
                     if (iList.Contains(format)) contains = true;
                     break;
 
-                case "rgb":
+                case "Rgb":
                     var rList = new List<byte> { 2, 3, 5, 7, 8, };
                     if (rList.Contains(format)) contains = true;
                     break;
 
-                case "classification":
+                case "Classification":
                     var cList = new List<byte> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
                     if (cList.Contains(format)) contains = true;
                     break;
 
-                case "numReturns":
+                case "NumReturns":
                     var nList = new List<byte> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
                     if (nList.Contains(format)) contains = true;
                     break;
@@ -322,10 +332,10 @@ namespace siteReader.Methods
 
         public static PointCloud GetPreviewCld(AsprCld cld)
         {
-            var lz = cld.laszip;
-            var path = cld.path;
-            var header = cld.header;
-            var format = cld.pointFormat;
+            var lz = cld.Laszip;
+            var path = cld.Path;
+            var header = cld.Header;
+            var format = cld.PointFormat;
 
             var ptCloud = new PointCloud();
             bool isCompressed;
@@ -366,7 +376,7 @@ namespace siteReader.Methods
         }
 
 
-        public static List<Color> uShortToColor(List<ushort> itns, List<Color> clrs)
+        public static List<Color> UShortToColor(List<ushort> itns, List<Color> clrs)
         {
             List<Color> result = new List<Color>();
 
@@ -392,7 +402,7 @@ namespace siteReader.Methods
             return result;
         }
 
-        public static List<Color> byteToColor(List<byte> itns, List<Color> clrs)
+        public static List<Color> ByteToColor(List<byte> itns, List<Color> clrs)
         {
             List<Color> result = new List<Color>();
 
