@@ -33,7 +33,7 @@ namespace siteReader.Components
 
         private List<float> _handleValues = new List<float> { 0f, 1f};
 
-        private PointCloud _previewCloud;
+        private AsprCld _previewCloud;
 
         //the lists for displaying the bar graph
         private List<int> _uniqueFieldVals;
@@ -71,7 +71,6 @@ namespace siteReader.Components
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
-            pManager.AddNumberParameter("val", "val", "val", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -81,6 +80,14 @@ namespace siteReader.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             base.SolveInstance(DA);
+            if (_previewCloud != null)
+            {
+                DA.SetData(0, _previewCloud);
+            }
+            else
+            {
+                DA.SetData(0, _cld);
+            }
         }
 
         //PREVIEW OVERRIDES AND UI METHODS ---------------------------------------------------
@@ -91,41 +98,42 @@ namespace siteReader.Components
 
             List<Color> newVColors;
             _selectedField = selection;
+            var ptCount = _cld.PtCloud.Count;
 
             switch (selection)
             {
                 case 0:
-                    newVColors = LasMethods.UShortToColor(_cld.Intensity, _colors);
+                    newVColors = LasMethods.UShortToColor(_cld.Intensity, _colors, ptCount);
                     _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToIntensOrClrChannel();
+                    _cld.SetFieldToIntensOrClrChannel(_cld.Intensity);
                     break;
 
                 case 1:
-                    newVColors = LasMethods.UShortToColor(_cld.R, _colors);
+                    newVColors = LasMethods.UShortToColor(_cld.R, _colors, ptCount);
                     _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToIntensOrClrChannel();
+                    _cld.SetFieldToIntensOrClrChannel(_cld.R);
                     break;
 
                 case 2:
-                    newVColors = LasMethods.UShortToColor(_cld.G, _colors);
+                    newVColors = LasMethods.UShortToColor(_cld.G, _colors, ptCount);
                     _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToIntensOrClrChannel();
+                    _cld.SetFieldToIntensOrClrChannel(_cld.G);
                     break;
 
                 case 3:
-                    newVColors = LasMethods.UShortToColor(_cld.B, _colors);
+                    newVColors = LasMethods.UShortToColor(_cld.B, _colors, ptCount);
                     _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToIntensOrClrChannel();
+                    _cld.SetFieldToIntensOrClrChannel(_cld.B);
                     break;
 
                 case 4:
-                    newVColors = LasMethods.ByteToColor(_cld.Classification, _colors);
+                    newVColors = LasMethods.ByteToColor(_cld.Classification, _colors, ptCount);
                     _cld.ApplyColors(newVColors);
                     _cld.SetFieldToClassOrReturns(_cld.Classification);
                     break;
 
                 case 5:
-                    newVColors = LasMethods.ByteToColor(_cld.NumReturns, _colors);
+                    newVColors = LasMethods.ByteToColor(_cld.NumReturns, _colors, ptCount);
                     _cld.ApplyColors(newVColors);
                     _cld.SetFieldToClassOrReturns(_cld.NumReturns);
                     break;
@@ -168,9 +176,9 @@ namespace siteReader.Components
             if (_cld != null && _cld.PtCloud != null)
             {
 
-                if (_cld.CurrentField != null && _previewCloud != null)
+                if (_cld.CurrentField != null && _previewCloud != null && _previewCloud.PtCloud != null)
                 {
-                    args.Display.DrawPointCloud(_previewCloud, 2);
+                    args.Display.DrawPointCloud(_previewCloud.PtCloud, 2);
                 }
 
                 else
@@ -226,15 +234,17 @@ namespace siteReader.Components
         {
             if (_cld.CurrentField == null) return;
 
-            _previewCloud = new PointCloud();
             var cldPts = _cld.PtCloud.GetPoints();
-            var ptColors = _cld.PtCloud.GetColors();
+
+            bool[] filterArr = new bool[cldPts.Length];
 
             for (int i = 0; i < cldPts.Length; i++)
             {
-                if (_cld.CurrentField[i] >= _handleValues[0] && _cld.CurrentField[i] <= _handleValues[1])
-                    _previewCloud.Add(cldPts[i], ptColors[i]);
+                var inBounds = _cld.CurrentField[i] >= _handleValues[0] && _cld.CurrentField[i] <= _handleValues[1];
+                filterArr[i] = inBounds;
             }
+
+            _previewCloud = new AsprCld(_cld, filterArr);
         }
 
         private void CountFieldVals()

@@ -104,7 +104,7 @@ namespace SiteReader.UI
 
             const int vertSpace = 10;
             const int sideSpacer = 4;
-            const int extraHeight = 230;
+            const int extraHeight = 225;
             const int horizSpace = 8;
 
             //here we can modify the bounds
@@ -203,7 +203,7 @@ namespace SiteReader.UI
                 }
 
                 //drawing the gradient graphs
-                if (_chosenField >= 0)
+                if (_chosenField >= 0 && _fValues().Count > 0)
                 {
                     var vals = _fValues();
                     var valCnts = _fValCounts();

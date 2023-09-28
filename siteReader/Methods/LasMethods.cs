@@ -376,13 +376,13 @@ namespace siteReader.Methods
         }
 
 
-        public static List<Color> UShortToColor(List<ushort> itns, List<Color> clrs)
+        public static List<Color> UShortToColor(List<ushort> itns, List<Color> clrs, int ptCount)
         {
             List<Color> result = new List<Color>();
 
-            ushort maxVal = itns.Max();
+            ushort maxVal = itns.Count > 0 ? itns.Max(): (ushort)0;
 
-            if (maxVal > 0)
+            if (itns.Count > 0 && maxVal > 0)
             {
                 foreach (var val in itns)
                 {
@@ -392,23 +392,23 @@ namespace siteReader.Methods
             }
             else
             {
-                foreach(var val in itns)
+                for (int i = 0; i < ptCount; i++)
                 {
                     result.Add(Color.Black);
                 }
             }
-            
+
 
             return result;
         }
 
-        public static List<Color> ByteToColor(List<byte> itns, List<Color> clrs)
+        public static List<Color> ByteToColor(List<byte> itns, List<Color> clrs, int ptCount)
         {
             List<Color> result = new List<Color>();
 
-            byte maxVal = itns.Max();
+            byte maxVal = itns.Count > 0 ? itns.Max() : (byte)0;
 
-            if (maxVal > 0)
+            if (itns.Count > 0 && maxVal > 0)
             {
                 foreach (var val in itns)
                 {
@@ -416,9 +416,9 @@ namespace siteReader.Methods
                     result.Add(clrs[mapped]);
                 }
             }
-            else
+            else 
             {
-                foreach (var val in itns)
+                for (int i = 0; i < ptCount; i++)
                 {
                     result.Add(Color.Black);
                 }

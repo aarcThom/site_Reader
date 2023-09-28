@@ -84,6 +84,7 @@ namespace siteReader.Params
             this.m_value = _ptCloud; // the geometry for the grasshopper geometricGoo
         }
 
+        //copying the cloud
         public AsprCld(AsprCld cld)
         {
             _path = cld.Path;
@@ -102,10 +103,47 @@ namespace siteReader.Params
             _classification = cld.Classification.Copy();
             _numReturns = cld.NumReturns.Copy();
 
+            _currentField = cld.CurrentField;
+
             _ptCloud = new PointCloud(cld.PtCloud);
             this.m_value = _ptCloud;
         }
 
+        //filtering the cloud based on field values
+        public AsprCld(AsprCld cld, bool[] filter)
+        {
+            _path = cld.Path;
+            _laszip = cld.Laszip;
+
+            _vlr = cld.Vlr.Copy();
+            _header = cld.Header.Copy();
+            _format = cld.PointFormat;
+
+            _intensity = cld.Intensity.Where((val, ix) => filter[ix]).ToList();
+            _rgb = cld.Rgb.Where((val, ix) => filter[ix]).ToList();
+            _r = cld.R.Where((val, ix) => filter[ix]).ToList();
+            _g = cld.G.Where((val, ix) => filter[ix]).ToList();
+            _b = cld.B.Where((val, ix) => filter[ix]).ToList();
+            _classification = cld.Classification.Where((val, ix) => filter[ix]).ToList();
+            _numReturns = cld.NumReturns.Where((val, ix) => filter[ix]).ToList();
+
+            _currentField = cld.CurrentField;
+
+            var cldPts = cld.PtCloud.GetPoints();
+            var ptColors = cld.PtCloud.GetColors();
+
+            _ptCloud = new PointCloud();
+            for (int i = 0; i < cldPts.Length; i++)
+            {
+                if (filter[i])
+                    _ptCloud.Add(cldPts[i], ptColors[i]);
+            }
+            this.m_value = _ptCloud;
+
+
+        }
+
+        //for GH components to transform the cloud
         public AsprCld(PointCloud transformedCloud, AsprCld cld)
         {
             _path = cld.Path;
@@ -238,18 +276,20 @@ namespace siteReader.Params
             _currentField = result;
         }
 
-        public void SetFieldToIntensOrClrChannel()
+        public void SetFieldToIntensOrClrChannel(List<ushort> field)
         {
             List<float> result = new List<float>();
 
-            ushort maxVal = _intensity.Max();
-
-            foreach (var val in _intensity)
+            if (field.Count > 0)
             {
-                float mapped = maxVal == 0 ? 0 : (float)val / (float)maxVal;
-                result.Add(mapped);
-            }
+                ushort maxVal = field.Max();
 
+                foreach (var val in field)
+                {
+                    float mapped = maxVal == 0 ? 0 : (float)val / (float)maxVal;
+                    result.Add(mapped);
+                }
+            }
             _currentField = result;
         }
 
