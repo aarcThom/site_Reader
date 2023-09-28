@@ -14,12 +14,26 @@
 	
   <ItemGroup>
     <None Remove="Resources\menus\deselected.png" />
+    <None Remove="Resources\menus\greyscale_no.png" />
+    <None Remove="Resources\menus\greyscale_yes.png" />
+    <None Remove="Resources\menus\heatmap_no.png" />
+    <None Remove="Resources\menus\heatmap_yes.png" />
+    <None Remove="Resources\menus\rainbow_no.png" />
+    <None Remove="Resources\menus\rainbow_yes.png" />
+    <None Remove="Resources\menus\red-white-blue_no.png" />
+    <None Remove="Resources\menus\red-white-blue_yes.png" />
     <None Remove="Resources\menus\selected.png" />
   </ItemGroup>
 	
   <ItemGroup>
-    <EmbeddedResource Include="Resources\menus\deselected.png" />
-    <EmbeddedResource Include="Resources\menus\selected.png" />
+    <EmbeddedResource Include="Resources\menus\greyscale_no.png" />
+    <EmbeddedResource Include="Resources\menus\greyscale_yes.png" />
+    <EmbeddedResource Include="Resources\menus\heatmap_no.png" />
+    <EmbeddedResource Include="Resources\menus\heatmap_yes.png" />
+    <EmbeddedResource Include="Resources\menus\rainbow_no.png" />
+    <EmbeddedResource Include="Resources\menus\rainbow_yes.png" />
+    <EmbeddedResource Include="Resources\menus\red-white-blue_no.png" />
+    <EmbeddedResource Include="Resources\menus\red-white-blue_yes.png" />
   </ItemGroup>
   
   <ItemGroup>

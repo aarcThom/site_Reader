@@ -17,7 +17,7 @@ namespace siteReader.Components
     {
         //FIELDS
         protected AsprCld _cld;
-        protected AsprCld _prevCld; // used to check if the cloud input has changed
+        protected bool _cldInput; //used to check if their is input in the inheriting components
 
 
         /// <summary>
@@ -54,25 +54,25 @@ namespace siteReader.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             //Retrive the input data from the Aspr Cloud input
+            //NOTE: The inheriting component needs to return if _cldInput == false
             AsprCld cld = new AsprCld();
             if (!DA.GetData(0, ref cld))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Input parameter ASPR Cloud failed to collect data");
                 _cld = null;
-                _prevCld = null;
-                return;
+                _cldInput = false;
             }
             else if (cld.PtCloud == null || cld.PtCloud.Count == 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no points");
-                return;
+                _cldInput = false;
             }
             else
             {
-                if (_cld == null || _prevCld != _cld)
+                if (_cld == null || cld != _cld)
                 {
                     _cld = new AsprCld(cld);
-                    _prevCld = _cld;
+                    _cldInput = true;
                 }
 
             }

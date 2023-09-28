@@ -23,7 +23,7 @@ namespace siteReader.UI.features
         {
             "rainbow",
             "greyscale",
-            "red white blue",
+            "red-white-blue",
             "heatmap"
         };
 

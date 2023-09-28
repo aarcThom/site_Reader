@@ -26,7 +26,9 @@ namespace SiteReader.UI
         //FIELDS -----------------------------------------------------------------------------------------------
 
         //return values
-        private readonly Action<int> _selectField;
+        private readonly Action<int> _setSelectField;
+        private readonly Func<int> _getSelectField;
+
         private readonly Action<List<float>> _handleValues;
         private readonly Action _filterFields;
 
@@ -73,10 +75,11 @@ namespace SiteReader.UI
          https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/base
          */
 
-        public DisplayFields(GH_Component owner, Action<int> selectField, Action<List<float>> handleValues, 
+        public DisplayFields(GH_Component owner, Action<int> setSelectField, Func<int> getSelectField, Action<List<float>> handleValues, 
             Action filterFields, Func<List<Color>> fColors, Func<List<int>> fValCounts, Func<List<int>> fValues) : base(owner)
         {
-            _selectField = selectField;
+            _setSelectField = setSelectField;
+            _getSelectField = getSelectField;
             _slider = new HorizSliders(_numHandles, _handleDiameter);
             _handleValues = handleValues;
             _filterFields = filterFields;
@@ -186,6 +189,14 @@ namespace SiteReader.UI
                 //spacer line
                 graphics.DrawLine(outLine, _ptLeft, _ptRight);
 
+                //these lines are to check if the radio selection and slider is cleared when a component is not hooked up
+                if (_getSelectField() == -1 && _chosenField != -1)
+                {
+                    _chosenField = -1;
+                    _slider.ResetSliders();
+                    _handleValues(_slider.HandPos);
+                }
+
                 //radio buttons
                 _radRecs.Draw(outLine, font, font, graphics, _chosenField);
 
@@ -261,7 +272,7 @@ namespace SiteReader.UI
                     {
                         Owner.RecordUndoEvent("Site reader button clicked");
                         _chosenField = i;
-                        _selectField(_chosenField);
+                        _setSelectField(_chosenField);
 
                         /* note sure why I can't access Owner.ExpireLayout() but the below works to refresh the display while NOT expiring the solution
                         https://discourse.mcneel.com/t/grasshopper-importBtn-should-i-expire-solution/117368
@@ -334,7 +345,6 @@ namespace SiteReader.UI
             {
                 Owner.RecordUndoEvent("SiteReader field filtered");
                 _filterFields();
-                Owner.ExpireSolution(true);
                 return GH_ObjectResponse.Handled;
 
             }

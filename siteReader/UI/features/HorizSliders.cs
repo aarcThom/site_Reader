@@ -167,6 +167,11 @@ namespace siteReader.UI.features
             }
         }
 
+        public void ResetSliders()
+        {
+            _handPos = Enumerable.Range(0, _numSliders).Select(x => x / ((float)(_numSliders - 1))).ToList();
+        }
+
         private bool TestProximityLeft(int i)
         {
            if(i != 0 && Math.Abs(_handPos[i] - _handPos[i - 1]) < 0.02) return true;
