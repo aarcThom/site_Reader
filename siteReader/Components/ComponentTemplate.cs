@@ -17,6 +17,8 @@ namespace siteReader.Components
           : base("ComponentName", "Nickname",
               "Description", "Subcategory")
         {
+
+            IconPath = "siteReader.Resources...";
         }
 
         /// <summary>
@@ -41,18 +43,13 @@ namespace siteReader.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             base.SolveInstance(DA);
-        }
 
-        /// <summary>
-        /// Provides an Icon for the component.
-        /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
+            // clear the UI if cloud input disconnected. Leave blank excepting the return if not needed
+            if (_cldInput == false)
             {
-                //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return null;
+                //CLEAR UI DATA HERE
+                //Grasshopper.Instances.RedrawCanvas();
+                return;
             }
         }
 

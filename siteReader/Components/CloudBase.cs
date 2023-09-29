@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
+using System.Reflection;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using siteReader.Params;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace siteReader.Components
 {
@@ -15,9 +18,19 @@ namespace siteReader.Components
 
     public abstract class CloudBase : GH_Component
     {
+        // NOTE: SEE https://james-ramsden.com/grasshopperdocument-component-grasshopper-visual-studio/
+        // for referencing component and grasshopper document in VS
+        GH_Document GrasshopperDocument;
+        IGH_Component Component;
+
+        //grabbing embedded resources
+        protected readonly Assembly GHAssembly = Assembly.GetExecutingAssembly();
+
         //FIELDS
-        protected AsprCld _cld;
-        protected bool _cldInput; //used to check if their is input in the inheriting components
+        protected AsprCld Cld;
+        protected bool CldInput; //used to check if their is input in the inheriting components
+
+        protected string IconPath;
 
 
         /// <summary>
@@ -54,25 +67,25 @@ namespace siteReader.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             //Retrive the input data from the Aspr Cloud input
-            //NOTE: The inheriting component needs to return if _cldInput == false
+            //NOTE: The inheriting component needs to return if CldInput == false
             AsprCld cld = new AsprCld();
             if (!DA.GetData(0, ref cld))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Input parameter ASPR Cloud failed to collect data");
-                _cld = null;
-                _cldInput = false;
+                Cld = null;
+                CldInput = false;
             }
             else if (cld.PtCloud == null || cld.PtCloud.Count == 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no points");
-                _cldInput = false;
+                CldInput = false;
             }
             else
             {
-                if (_cld == null || cld != _cld)
+                if (Cld == null || cld != Cld)
                 {
-                    _cld = new AsprCld(cld);
-                    _cldInput = true;
+                    Cld = new AsprCld(cld);
+                    CldInput = true;
                 }
 
             }
@@ -82,9 +95,9 @@ namespace siteReader.Components
         //drawing the point cloud if preview is enabled
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_cld != null && _cld.PtCloud != null)
+            if (Cld != null && Cld.PtCloud != null)
             {
-                args.Display.DrawPointCloud(_cld.PtCloud, 2);
+                args.Display.DrawPointCloud(Cld.PtCloud, 2);
             }
         }
         
@@ -94,13 +107,30 @@ namespace siteReader.Components
         {
             get
             {
-                if (_cld != null && _cld.PtCloud != null)
+                if (Cld != null && Cld.PtCloud != null)
                 {
-                    return _cld.PtCloud.GetBoundingBox(true);
+                    return Cld.PtCloud.GetBoundingBox(true);
                 }
 
                 return base.ClippingBox;
 
+            }
+        }
+
+        /// <summary>
+        /// Provides an Icon for the component.
+        /// </summary>
+        protected override Bitmap Icon
+        {
+            get
+            {
+                if (IconPath == null)
+                {
+                    IconPath = "siteReader.Resources.generic.png";
+                }
+
+                var stream = GHAssembly.GetManifestResourceStream(IconPath);
+                return new Bitmap(stream);
             }
         }
 

@@ -17,13 +17,6 @@ namespace siteReader.Components
 {
     public class FilterByField : CloudBase
     {
-        // NOTE: SEE https://james-ramsden.com/grasshopperdocument-component-grasshopper-visual-studio/
-        // for referencing component and grasshopper document in VS
-        GH_Document GrasshopperDocument;
-        IGH_Component Component;
-
-        //grabbing embedded resources
-        private readonly Assembly _assembly = Assembly.GetExecutingAssembly();
 
         // FIELDS -----------------------------------------------------------------------------------------
 
@@ -51,6 +44,8 @@ namespace siteReader.Components
         {
             _gradientSelection = 0;
             _colors = CloudColors.GetColorList(_gradientSelection);
+
+            IconPath = "siteReader.Resources.filterField.png";
         }
 
         /// <summary>
@@ -71,7 +66,7 @@ namespace siteReader.Components
 
             
             // clear the UI if cloud input disconnected
-            if (_cldInput == false)
+            if (CldInput == false)
             {
                 _fieldValCounts = new List<int>();
                 _uniqueFieldVals = new List<int>();
@@ -86,7 +81,7 @@ namespace siteReader.Components
             }
             else
             {
-                DA.SetData(0, _cld);
+                DA.SetData(0, Cld);
             }
         }
 
@@ -101,44 +96,44 @@ namespace siteReader.Components
 
             List<Color> newVColors;
             _selectedField = selection;
-            var ptCount = _cld.PtCloud.Count;
+            var ptCount = Cld.PtCloud.Count;
 
             switch (selection)
             {
                 case 0:
-                    newVColors = LasMethods.UShortToColor(_cld.Intensity, _colors, ptCount);
-                    _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToIntensOrClrChannel(_cld.Intensity);
+                    newVColors = LasMethods.UShortToColor(Cld.Intensity, _colors, ptCount);
+                    Cld.ApplyColors(newVColors);
+                    Cld.SetFieldToIntensOrClrChannel(Cld.Intensity);
                     break;
 
                 case 1:
-                    newVColors = LasMethods.UShortToColor(_cld.R, _colors, ptCount);
-                    _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToIntensOrClrChannel(_cld.R);
+                    newVColors = LasMethods.UShortToColor(Cld.R, _colors, ptCount);
+                    Cld.ApplyColors(newVColors);
+                    Cld.SetFieldToIntensOrClrChannel(Cld.R);
                     break;
 
                 case 2:
-                    newVColors = LasMethods.UShortToColor(_cld.G, _colors, ptCount);
-                    _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToIntensOrClrChannel(_cld.G);
+                    newVColors = LasMethods.UShortToColor(Cld.G, _colors, ptCount);
+                    Cld.ApplyColors(newVColors);
+                    Cld.SetFieldToIntensOrClrChannel(Cld.G);
                     break;
 
                 case 3:
-                    newVColors = LasMethods.UShortToColor(_cld.B, _colors, ptCount);
-                    _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToIntensOrClrChannel(_cld.B);
+                    newVColors = LasMethods.UShortToColor(Cld.B, _colors, ptCount);
+                    Cld.ApplyColors(newVColors);
+                    Cld.SetFieldToIntensOrClrChannel(Cld.B);
                     break;
 
                 case 4:
-                    newVColors = LasMethods.ByteToColor(_cld.Classification, _colors, ptCount);
-                    _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToClassOrReturns(_cld.Classification);
+                    newVColors = LasMethods.ByteToColor(Cld.Classification, _colors, ptCount);
+                    Cld.ApplyColors(newVColors);
+                    Cld.SetFieldToClassOrReturns(Cld.Classification);
                     break;
 
                 case 5:
-                    newVColors = LasMethods.ByteToColor(_cld.NumReturns, _colors, ptCount);
-                    _cld.ApplyColors(newVColors);
-                    _cld.SetFieldToClassOrReturns(_cld.NumReturns);
+                    newVColors = LasMethods.ByteToColor(Cld.NumReturns, _colors, ptCount);
+                    Cld.ApplyColors(newVColors);
+                    Cld.SetFieldToClassOrReturns(Cld.NumReturns);
                     break;
             }
 
@@ -195,17 +190,17 @@ namespace siteReader.Components
         /// <param name="args"></param>
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (_cld != null && _cld.PtCloud != null)
+            if (Cld != null && Cld.PtCloud != null)
             {
 
-                if (_cld.CurrentField != null && _previewCloud != null && _previewCloud.PtCloud != null)
+                if (Cld.CurrentField != null && _previewCloud != null && _previewCloud.PtCloud != null)
                 {
                     args.Display.DrawPointCloud(_previewCloud.PtCloud, 2);
                 }
 
                 else
                 {
-                    args.Display.DrawPointCloud(_cld.PtCloud, 2);
+                    args.Display.DrawPointCloud(Cld.PtCloud, 2);
                 }
             }
         }
@@ -229,13 +224,13 @@ namespace siteReader.Components
 
                 if (i == _gradientSelection)
                 {
-                    Stream stream = _assembly.GetManifestResourceStream(
+                    Stream stream = GHAssembly.GetManifestResourceStream(
                     "siteReader.Resources.menus." + gradName + "_yes.png");
                     if (stream != null) img = Image.FromStream(stream);
                 }
                 else
                 {
-                    Stream stream = _assembly.GetManifestResourceStream(
+                    Stream stream = GHAssembly.GetManifestResourceStream(
                         "siteReader.Resources.menus." + gradName + "_no.png");
                     if (stream != null) img = Image.FromStream(stream);
                 }
@@ -263,7 +258,7 @@ namespace siteReader.Components
             {
                 _gradientSelection = CloudColors.GradNames.IndexOf(item.Text);
                 _colors = CloudColors.GetColorList(_gradientSelection);
-                if (_cld != null) SelectField(_selectedField);
+                if (Cld != null) SelectField(_selectedField);
                 Grasshopper.Instances.RedrawCanvas();
                 
 
@@ -292,12 +287,12 @@ namespace siteReader.Components
             }
             else
             {
-                obj_ids.Add(doc.Objects.AddPointCloud(_cld.PtCloud, att));
+                obj_ids.Add(doc.Objects.AddPointCloud(Cld.PtCloud, att));
             }
 
         }
 
-        public override bool IsBakeCapable => _previewCloud.PtCloud != null || _cld.PtCloud != null;
+        public override bool IsBakeCapable => _previewCloud.PtCloud != null || Cld.PtCloud != null;
 
         //UTILITY METHODS-------------------------------------------------------------------------------------------------
 
@@ -306,19 +301,19 @@ namespace siteReader.Components
         /// </summary>
         public void FilterFields()
         {
-            if (_cld.CurrentField == null) return;
+            if (Cld.CurrentField == null) return;
 
-            var cldPts = _cld.PtCloud.GetPoints();
+            var cldPts = Cld.PtCloud.GetPoints();
 
             bool[] filterArr = new bool[cldPts.Length];
 
             for (int i = 0; i < cldPts.Length; i++)
             {
-                var inBounds = _cld.CurrentField[i] >= _handleValues[0] && _cld.CurrentField[i] <= _handleValues[1];
+                var inBounds = Cld.CurrentField[i] >= _handleValues[0] && Cld.CurrentField[i] <= _handleValues[1];
                 filterArr[i] = inBounds;
             }
 
-            _previewCloud = new AsprCld(_cld, filterArr);
+            _previewCloud = new AsprCld(Cld, filterArr);
             ExpirePreview(true);
         }
 
@@ -327,7 +322,7 @@ namespace siteReader.Components
         /// </summary>
         private void CountFieldVals()
         {
-            var formattedVals = _cld.CurrentField.Select(val => (int)(val * 256)).ToList();
+            var formattedVals = Cld.CurrentField.Select(val => (int)(val * 256)).ToList();
             formattedVals.Sort();
             _uniqueFieldVals = new HashSet<int>(formattedVals).ToList();
 
@@ -340,17 +335,7 @@ namespace siteReader.Components
 
         }
 
-        /// <summary>
-        /// Provides an Icon for the component.
-        /// </summary>
-        protected override Bitmap Icon
-        {
-            get
-            {
-                var stream = _assembly.GetManifestResourceStream("siteReader.Resources.filterField.png");
-                return new Bitmap(stream);
-            }
-        }
+
 
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.

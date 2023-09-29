@@ -5,10 +5,12 @@ using Grasshopper.Kernel;
 using Rhino.Geometry;
 using siteReader.Methods;
 using siteReader.Params;
+using System.Drawing;
+
 
 namespace siteReader.Components
 {
-    public class HeaderInfo : GH_Component
+    public class HeaderInfo : CloudBase
     {
         /// <summary>
         /// Initializes a new instance of the MyComponent1 class.
@@ -16,16 +18,8 @@ namespace siteReader.Components
         public HeaderInfo()
           : base("LAS Header info", "Header",
             "Return a .las cloud's Header fields as individual parameters",
-            "SiteReader", "Point Clouds")
+            "Point Clouds")
         {
-        }
-
-        /// <summary>
-        /// Registers all the input parameters for this component.
-        /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
-        {
-            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -45,47 +39,38 @@ namespace siteReader.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            AsprCld cld = new AsprCld();
-            if (!DA.GetData(0, ref cld)) return;
+            if (CldInput == false)
+            {
+                //CLEAR UI DATA HERE
+                //Grasshopper.Instances.RedrawCanvas();
+                return;
+            }
 
-            if (cld.Header == null) 
+            if (Cld.Header == null) 
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "This cloud has no Header. Most likely a rhino referenced point cloud.");
                 return;
             }
 
-            int ptCount = (int)cld.Header["Number of Points"];
+            int ptCount = (int)Cld.Header["Number of Points"];
 
             Point3d minPt = new Point3d();
-            minPt.X = cld.Header["Min X"];
-            minPt.Y = cld.Header["Min Y"];
-            minPt.Z = cld.Header["Min Z"];
+            minPt.X = Cld.Header["Min X"];
+            minPt.Y = Cld.Header["Min Y"];
+            minPt.Z = Cld.Header["Min Z"];
 
             Point3d maxPt = new Point3d();
-            maxPt.X = cld.Header["Max X"];
-            maxPt.Y = cld.Header["Max Y"];
-            maxPt.Z = cld.Header["Max Z"];
+            maxPt.X = Cld.Header["Max X"];
+            maxPt.Y = Cld.Header["Max Y"];
+            maxPt.Z = Cld.Header["Max Z"];
 
-            int ptFrmt = Convert.ToInt32(cld.Header["Point Format"]);
+            int ptFrmt = Convert.ToInt32(Cld.Header["Point Format"]);
 
 
             DA.SetData(0, ptCount);
             DA.SetData(1, minPt);
             DA.SetData(2, maxPt);
             DA.SetData(3, ptFrmt);
-        }
-
-        /// <summary>
-        /// Provides an Icon for the component.
-        /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return null;
-            }
         }
 
         /// <summary>

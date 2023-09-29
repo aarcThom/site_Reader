@@ -14,6 +14,7 @@
 	
   <ItemGroup>
     <None Remove="Resources\filterField.png" />
+    <None Remove="Resources\generic.png" />
     <None Remove="Resources\menus\deselected.png" />
     <None Remove="Resources\menus\greyscale_no.png" />
     <None Remove="Resources\menus\greyscale_yes.png" />
@@ -28,6 +29,7 @@
 	
   <ItemGroup>
     <EmbeddedResource Include="Resources\filterField.png" />
+    <EmbeddedResource Include="Resources\generic.png" />
     <EmbeddedResource Include="Resources\menus\greyscale_no.png" />
     <EmbeddedResource Include="Resources\menus\greyscale_yes.png" />
     <EmbeddedResource Include="Resources\menus\heatmap_no.png" />
