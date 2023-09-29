@@ -347,7 +347,7 @@ namespace siteReader.Components
         {
             get
             {
-                var stream = _assembly.GetManifestResourceStream("siteReader.Resources.menus.heatmap_yes.png");
+                var stream = _assembly.GetManifestResourceStream("siteReader.Resources.filterField.png");
                 return new Bitmap(stream);
             }
         }
