@@ -11,6 +11,7 @@ using Aardvark.Base;
 using Rhino.Commands;
 using System.Linq;
 using Aardvark.Base.Sorting;
+using Eto.Forms;
 
 namespace siteReader.Params
 {
@@ -23,7 +24,7 @@ namespace siteReader.Params
         private readonly string _path;
         private readonly Dictionary<string, float> _header;
         private readonly Dictionary<string, string> _vlr;
-        private byte _format;
+        private readonly byte _format;
 
         private List<ushort> _intensity;
         private List<Color> _rgb;
@@ -251,54 +252,35 @@ namespace siteReader.Params
             _ptCloud = LasMethods.GetPreviewCld(this);
         }
 
-        public void ApplyColors(List<Color> colors)
+        public void ApplyFieldColors(int fieldNum, List<Color> inColors)
         {
+            //the ushort values
+            List<ushort>[] uArr = new[] { _intensity, _r, _g, _b };
+            //the byte values
+            List<byte>[] bArr = new[] { _classification, _numReturns };
+
+            int ptCount = _ptCloud.Count;
+
+            List<Color> colors;
+
+            if (fieldNum < uArr.Length)
+            {
+                colors = LasMethods.UShortToColor(uArr[fieldNum], inColors, ptCount);
+                _currentField = LasMethods.SetFieldToIntensOrClrChannel(uArr[fieldNum]);
+            }
+            else
+            {
+                fieldNum -= uArr.Length;
+                colors = LasMethods.ByteToColor(bArr[fieldNum], inColors, ptCount);
+                _currentField = LasMethods.SetFieldToClassOrReturns(bArr[fieldNum]);
+            }
+
             int colorCount = 0;
             foreach(var pt in _ptCloud)
             {
                 pt.Color = colors[colorCount];
                 colorCount++;
             }
-        }
-
-        public void SetFieldToClassOrReturns(List<byte> field)
-        {
-            List<float> result = new List<float>();
-
-            byte maxVal = field.Max();
-
-            foreach (var val in field)
-            {
-                float mapped = maxVal == 0 ? 0 : (float)val / (float)maxVal;
-                result.Add(mapped);
-            }
-
-            _currentField = result;
-        }
-
-        public void SetFieldToIntensOrClrChannel(List<ushort> field)
-        {
-            List<float> result = new List<float>();
-
-            if (field.Count > 0)
-            {
-                ushort maxVal = field.Max();
-
-                foreach (var val in field)
-                {
-                    float mapped = maxVal == 0 ? 0 : (float)val / (float)maxVal;
-                    result.Add(mapped);
-                }
-            }
-            _currentField = result;
-        }
-
-        public void SetFieldToRGB()
-        {
-            //NOTE: I NEED TO FIGURE THIS OUT
-            // I'm thinking it will be based on color distance from a preset rainbow slider
-
-            _currentField = Enumerable.Range(0, _rgb.Count).Select(val => (float)val / (float)_rgb.Count).ToList();
         }
     }
 }

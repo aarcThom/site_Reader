@@ -1,24 +1,21 @@
 ﻿using Aardvark.Base;
-using Grasshopper.Kernel;
 using Rhino.Geometry;
 using siteReader.Params;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
-using Grasshopper.Kernel.Types.Transforms;
-using System.IO;
-using Rhino;
-using System.Drawing.Text;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using g3;
+
 
 namespace siteReader.Methods
 {
     public static class LasMethods
     {
+        //LAS METHODS=============================================================================================
+        //The methods contained within this class are referenced only by the AsprCld class and the AsprParam class.
+        //========================================================================================================
 
         /// <summary>
         /// decodes and formats the .las VLRs and returns a dictionary of values if any
@@ -107,6 +104,7 @@ namespace siteReader.Methods
             lz.close_reader();
             return headerDict;
         }
+
         /// <summary>
         /// Given a point density between 0.1 and 1, return a pattern of indices used to pick points from a .las cloud
         /// </summary>
@@ -192,6 +190,14 @@ namespace siteReader.Methods
             return false;
         }
 
+        /// <summary>
+        /// The main Rhino Pointcloud and fields retrieval method.
+        /// </summary>
+        /// <param name="cld">The AsprCloud</param>
+        /// <param name="density">The density factor between 0 and 1 to convert to a Rhino cloud.</param>
+        /// <param name="crops">Any 3d meshes or Breps to crop the resultant Rhino cloud.</param>
+        /// <param name="inside">If true, points inside the crop will be kept. If false, points outside the crop will be kept.</param>
+        /// <returns>A rhino pointcloud along with field values for each point.</returns>
         public static (PointCloud, List<ushort>, List<Color>, List<ushort>, List<ushort>, List<ushort>, List<byte>, List<byte>) 
             GetPtCloud(AsprCld cld, float density, List<Mesh> crops, bool inside)
         {
@@ -296,6 +302,11 @@ namespace siteReader.Methods
             }
         */
 
+        /// <summary>
+        /// Spatial tree from Rhino Geometry. For point inclusion testing.
+        /// </summary>
+        /// <param name="crops">Rhino meshes or Breps in.</param>
+        /// <returns>A DMesh spatial tree.</returns>
         private static DMeshAABBTree3 BuildSpatialTree(List<Mesh> crops)
         {
             if (crops == null || crops.Count == 0) return null;
@@ -313,7 +324,13 @@ namespace siteReader.Methods
             return spatial;
         }
 
-
+        /// <summary>
+        /// Test if a given point is inside or outside a crop.
+        /// </summary>
+        /// <param name="spatial">A DMesh spatial tree.</param>
+        /// <param name="rPt">The point3D to be tested.</param>
+        /// <param name="inside">If true, test if point is inside. If false, test if point is outside.</param>
+        /// <returns>True if point meets provided inclusion.</returns>
         private static bool PtInsideCrop(DMeshAABBTree3 spatial, Point3d rPt, bool inside)
         {
             var dir = new g3.Vector3d(0, 0, 1);
@@ -329,7 +346,11 @@ namespace siteReader.Methods
             return false;
         }
 
-
+        /// <summary>
+        /// Converts .Las / .laz pointcloud to Rhino geometry for initial visualiztion.
+        /// </summary>
+        /// <param name="cld">An AsprCld class object.</param>
+        /// <returns>A rhino geometry point cloud.</returns>
         public static PointCloud GetPreviewCld(AsprCld cld)
         {
             var lz = cld.Laszip;
@@ -375,7 +396,55 @@ namespace siteReader.Methods
             return ptCloud;
         }
 
+        /// <summary>
+        /// Remaps a byte fields (_classification, _numReturns) to the range 0-->1
+        /// </summary>
+        /// <param name="field">las field to process.</param>
+        /// <returns>Normalized list of values.</returns>
+        public static List<float> SetFieldToClassOrReturns(List<byte> field)
+        {
+            List<float> result = new List<float>();
 
+            byte maxVal = field.Max();
+
+            foreach (var val in field)
+            {
+                float mapped = maxVal == 0 ? 0 : (float)val / (float)maxVal;
+                result.Add(mapped);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Remaps a byte fields (r,g,b, instensity) to the range 0-->1
+        /// </summary>
+        /// <param name="field">las field to process.</param>
+        /// <returns>Normalized list of values.</returns>
+        public static List<float> SetFieldToIntensOrClrChannel(List<ushort> field)
+        {
+            List<float> result = new List<float>();
+
+            if (field.Count > 0)
+            {
+                ushort maxVal = field.Max();
+
+                foreach (var val in field)
+                {
+                    float mapped = maxVal == 0 ? 0 : (float)val / (float)maxVal;
+                    result.Add(mapped);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Given a color range, convert a range of ushorts to corresponding color for visualization.
+        /// </summary>
+        /// <param name="itns">Cloud field values.</param>
+        /// <param name="clrs">Color range.</param>
+        /// <param name="ptCount">Number of points in range.</param>
+        /// <returns>A list of colors corresponding to each point field value.</returns>
         public static List<Color> UShortToColor(List<ushort> itns, List<Color> clrs, int ptCount)
         {
             List<Color> result = new List<Color>();
@@ -398,10 +467,16 @@ namespace siteReader.Methods
                 }
             }
 
-
             return result;
         }
 
+        /// <summary>
+        /// Given a color range, convert a range of bytes to corresponding color for visualization.
+        /// </summary>
+        /// <param name="itns">Cloud field values.</param>
+        /// <param name="clrs">Color range.</param>
+        /// <param name="ptCount">Number of points in range.</param>
+        /// <returns>A list of colors corresponding to each point field value.</returns>
         public static List<Color> ByteToColor(List<byte> itns, List<Color> clrs, int ptCount)
         {
             List<Color> result = new List<Color>();
@@ -424,7 +499,6 @@ namespace siteReader.Methods
                 }
             }
             
-
             return result;
         }
     }

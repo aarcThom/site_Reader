@@ -39,12 +39,9 @@ namespace siteReader.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            if (CldInput == false)
-            {
-                //CLEAR UI DATA HERE
-                //Grasshopper.Instances.RedrawCanvas();
-                return;
-            }
+
+            base.SolveInstance(DA);
+            if (CldInput == false) return;
 
             if (Cld.Header == null) 
             {

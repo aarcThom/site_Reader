@@ -93,49 +93,9 @@ namespace siteReader.Components
         /// <param name="selection"></param>
         public void SelectField(int selection)
         {
-
-            List<Color> newVColors;
             _selectedField = selection;
-            var ptCount = Cld.PtCloud.Count;
 
-            switch (selection)
-            {
-                case 0:
-                    newVColors = LasMethods.UShortToColor(Cld.Intensity, _colors, ptCount);
-                    Cld.ApplyColors(newVColors);
-                    Cld.SetFieldToIntensOrClrChannel(Cld.Intensity);
-                    break;
-
-                case 1:
-                    newVColors = LasMethods.UShortToColor(Cld.R, _colors, ptCount);
-                    Cld.ApplyColors(newVColors);
-                    Cld.SetFieldToIntensOrClrChannel(Cld.R);
-                    break;
-
-                case 2:
-                    newVColors = LasMethods.UShortToColor(Cld.G, _colors, ptCount);
-                    Cld.ApplyColors(newVColors);
-                    Cld.SetFieldToIntensOrClrChannel(Cld.G);
-                    break;
-
-                case 3:
-                    newVColors = LasMethods.UShortToColor(Cld.B, _colors, ptCount);
-                    Cld.ApplyColors(newVColors);
-                    Cld.SetFieldToIntensOrClrChannel(Cld.B);
-                    break;
-
-                case 4:
-                    newVColors = LasMethods.ByteToColor(Cld.Classification, _colors, ptCount);
-                    Cld.ApplyColors(newVColors);
-                    Cld.SetFieldToClassOrReturns(Cld.Classification);
-                    break;
-
-                case 5:
-                    newVColors = LasMethods.ByteToColor(Cld.NumReturns, _colors, ptCount);
-                    Cld.ApplyColors(newVColors);
-                    Cld.SetFieldToClassOrReturns(Cld.NumReturns);
-                    break;
-            }
+            Cld.ApplyFieldColors(selection, _colors);
 
             CountFieldVals();
 

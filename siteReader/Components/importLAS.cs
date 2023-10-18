@@ -193,8 +193,14 @@ namespace siteReader.Components
             if (_importCloud && _asprCld.PtCloud != null)
             {
                 var bBox = _asprCld.PtCloud.GetBoundingBox(true);
-                RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.ZoomBoundingBox(bBox);
-                RhinoDoc.ActiveDoc.Views.ActiveView.Redraw();
+
+                var views = RhinoDoc.ActiveDoc.Views.GetViewList(true, false);
+
+                foreach (var view in views)
+                {
+                    view.ActiveViewport.ZoomBoundingBox(bBox);
+                    view.Redraw();
+                }
             }
         }
 

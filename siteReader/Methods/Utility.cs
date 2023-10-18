@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using g3;
 using Rhino.Geometry;
 using System.Drawing.Drawing2D;
+using Rhino;
+using siteReader.Params;
 
 namespace siteReader.Methods
 {
