@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System.Reflection;
+﻿using System.Reflection;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using siteReader.Params;
 using System.Drawing;
-using System.Windows.Forms;
+using siteReader.Methods;
 
 namespace siteReader.Components
 {
@@ -18,7 +15,9 @@ namespace siteReader.Components
 
     public abstract class CloudBase : GH_Component
     {
-        // NOTE: SEE https://james-ramsden.com/grasshopperdocument-component-grasshopper-visual-studio/
+        //FIELDS ======================================================================================================
+
+        // NOTE: See james-ramsden.com/grasshopperdocument-component-grasshopper-visual-studio/
         // for referencing component and grasshopper document in VS
         GH_Document GrasshopperDocument;
         IGH_Component Component;
@@ -26,47 +25,39 @@ namespace siteReader.Components
         //grabbing embedded resources
         protected readonly Assembly GHAssembly = Assembly.GetExecutingAssembly();
 
-        //FIELDS
         protected AsprCld Cld;
         protected bool CldInput; //used to check if their is input in the inheriting components
+        protected bool? ImportCld; //used if a component has an import cld button. bool? = nullable bool.
 
         protected string IconPath;
 
+        //CONSTRUCTORS ================================================================================================
 
-        /// <summary>
-        /// Initializes a new instance of the CloudBase class.
-        /// See the below link for a good example of an abstract base class for custom component inheritance:
-        /// https://github.com/mcneel/rhino-developer-samples/blob/5/grasshopper/cs/SamplePlatonics/GrasshopperPlatonics/PlatonicComponentBase.cs
-        /// </summary>
-
-
+        // See the below link for a good example of an abstract base class for custom component inheritance:
+        // github.com/mcneel/rhino-developer-samples/blob/5/grasshopper/cs/SamplePlatonics/GrasshopperPlatonics
         protected CloudBase(string name, string nickname, string description, string subCategory)
           : base(name, nickname, description, "SiteReader", subCategory)
         {
         }
 
 
-        /// <summary>
-        /// Registers all the input parameters for this component.
-        /// </summary>
+        //IO ==========================================================================================================
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
+            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", 
+                GH_ParamAccess.item);
+
             pManager[0].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            //pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
         }
 
-        /// <summary>
-        /// This is the method that actually does the work.
-        /// </summary>
-        /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
+        //SOLVE =======================================================================================================
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //Retrive the input data from the Aspr Cloud input
+            //Retrieve the input data from the Aspr Cloud input
             //NOTE: The inheriting component needs to return if CldInput == false
             AsprCld cld = new AsprCld();
             if (!DA.GetData(0, ref cld))
@@ -91,23 +82,20 @@ namespace siteReader.Components
             }
         }
 
-        
-        //drawing the point cloud if preview is enabled
+        //PREVIEW AND UI ==============================================================================================
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if (Cld != null && Cld.PtCloud != null)
+            if ((Cld != null && Cld.PtCloud != null) && (ImportCld == true || !ImportCld.HasValue))
             {
                 args.Display.DrawPointCloud(Cld.PtCloud, 2);
             }
         }
-        
 
-        //Return a BoundingBox that contains all the geometry you are about to draw.
         public override BoundingBox ClippingBox
         {
             get
             {
-                if (Cld != null && Cld.PtCloud != null)
+                if ((Cld != null && Cld.PtCloud != null) && (ImportCld == true || !ImportCld.HasValue))
                 {
                     return Cld.PtCloud.GetBoundingBox(true);
                 }
@@ -117,8 +105,23 @@ namespace siteReader.Components
             }
         }
 
+        //need to override this to be previewable despite having no geo output with preview method
+        public override bool IsPreviewCapable => true;
+
         /// <summary>
-        /// Provides an Icon for the component.
+        /// Zoom in on the cloud in all viewports
+        /// </summary>
+        public void ZoomCloud()
+        {
+            if (ImportCld == true && Cld.PtCloud != null)
+            {
+                var bBox = Cld.PtCloud.GetBoundingBox(true);
+                Utility.ZoomGeo(bBox);
+            }
+        }
+
+        /// <summary>
+        /// Provides an Icon for the component. Defaults to generic icon if none provided.
         /// </summary>
         protected override Bitmap Icon
         {
@@ -133,9 +136,5 @@ namespace siteReader.Components
                 return new Bitmap(stream);
             }
         }
-
-        //need to override this to be previewable despite having no geo output with preview method
-        public override bool IsPreviewCapable => true;
-
     }
 }

@@ -1,17 +1,16 @@
-﻿using Aardvark.Base;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace siteReader.Methods
 {
-    public static class ExtensionMethods
+    public static class Extension
     {
+        //EXTENSION METHODS============================================================================================
+        //Extending built in types.
+        //=============================================================================================================
+
         /// <summary>
-        /// Appeands '_#' to a duplicate key in a dictionary where # is the existing number of keys that contain the input key
+        /// Appends '_#' to a duplicate key in a dictionary where # is the existing # of keys that contain input key
         /// </summary>
         /// <param name="baseDictionary"></param>
         /// <param name="dKey"></param>

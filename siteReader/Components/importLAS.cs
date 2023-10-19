@@ -5,28 +5,13 @@ using System.IO;
 using Rhino;
 using siteReader.Params;
 using Rhino.Geometry;
-using Rhino.DocObjects;
 using siteReader.Methods;
 
 namespace siteReader.Components
 {
-    public class importLAS : GH_Component
+    public class ImportLas : CloudBase
     {
-        /// <summary>
-        /// Each implementation of GH_Component must provide a public 
-        /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
-        /// new tabs/panels will automatically be created.
-        /// </summary>
-        public importLAS()
-          : base("import LAS", "impLAS",
-            "Import a LAS file",
-            "SiteReader", "Point Clouds")
-        {
-        }
-
-        //FIELDS
+        //FIELDS ======================================================================================================
         private string _prevPath = string.Empty;
 
         private List<Mesh> _cropShapes;
@@ -34,118 +19,106 @@ namespace siteReader.Components
         private bool _insideCrop = true;
         private bool _prevInside = true;
 
-
-        private AsprCld _asprCld;
         private List<string> _headerOut;
         private List<string> _vlrOut;
 
-        //view attributes
         private float _cloudDensity = 0f;
-        private bool _importCloud = false;
 
+        //CONSTRUCTORS ================================================================================================
+        public ImportLas()
+            : base("import LAS", "impLAS",
+                "Import a LAS file",
+                "Point Clouds")
+        {
+            // IconPath = "siteReader.Resources...";
+            ImportCld = false;
+        }
 
-        /// <summary>
-        /// Registers all the input parameters for this component.
-        /// </summary>
+        //IO ==========================================================================================================
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("file Path", "Path", "Path to LAS or LAZ file.", GH_ParamAccess.item);
-            pManager.AddMeshParameter("Crop Shape", "Crop", "Provide breps or meshes to crop your cloud upon import.", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Crop Shape", "Crop", "Provide breps or meshes to crop your cloud upon import.", 
+                GH_ParamAccess.list);
+
             pManager[1].Optional = true;
-            pManager.AddBooleanParameter("Inside Crop", "InCrp", "If set to true (default), pts will be kept inside the crop shape. " +
+            pManager.AddBooleanParameter("Inside Crop", "InCrp", 
+                "If set to true (default), pts will be kept inside the crop shape. " +
                 "False will retain points outside the crop shape.", GH_ParamAccess.item, true);
         }
 
-        /// <summary>
-        /// Registers all the output parameters for this component.
-        /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddTextParameter("Header", "Header", "Header information.", GH_ParamAccess.list);
             pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
                 GH_ParamAccess.list);
-            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
 
+            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", 
+                "A point cloud linked with ASPRS data", GH_ParamAccess.item);
         }
 
-        /// <summary>
-        /// This is the method that actually does the work.
-        /// </summary>
-        /// <param name="DA">The DA object can be used to retrieve data from input parameters and 
-        /// to store data in output parameters.</param>
+        //SOLVE =======================================================================================================
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //VARIABLES---------------------------------------
-            // Input variables
             string currentPath = string.Empty;
-
-
-
-            //TEST INPUTS-------------------------------------
-            // Is input empty?
             if (!DA.GetData(0, ref currentPath))
             {
-
                 // I'm not sure if there is a way to clear the cloud once file is disconnected
                 // I think that the component will not run since DAparam 01 is not optional...
-                if (_asprCld != null)
+                if (Cld != null)
                 {
-                    _asprCld = null; //clear the cloud if need be (doesn't work)
+                    Cld = null; //clear the cloud if need be (doesn't work)
                     _prevPath = String.Empty;
                 } 
                 return;
             } 
 
-            // Test if file exists
             if (!File.Exists(currentPath))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Cannot find file");
                 return;
             }
 
-            //is .las or .laz?
             if (!Utility.TestLasExt(currentPath))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You must provide a valid .las or .laz file.");
                 return;
             }
 
-            List<Mesh> cropShps = new List<Mesh>();
-            //crop mesh input
-            if(DA.GetDataList(1, cropShps))
+            var cropShapes = new List<Mesh>();
+            if(DA.GetDataList(1, cropShapes))
             {
-                _cropShapes = cropShps;
+                _cropShapes = cropShapes;
             }
 
-
-            //inside crop
             DA.GetData(2, ref _insideCrop);
-
-
 
             //initial import
             if (_prevPath != currentPath)
             {
-                _asprCld = new AsprCld(currentPath);
-                _asprCld.DisplayDensity = _cloudDensity;
+                Cld = new AsprCld(currentPath)
+                {
+                    DisplayDensity = _cloudDensity
+                };
 
-                _headerOut = Utility.FloatDictGhOut(_asprCld.Header, this);
-                _vlrOut = Utility.StringDictGhOut(_asprCld.Vlr);
+                _headerOut = FloatDictGhOut(Cld.Header, this);
+                _vlrOut = StringDictGhOut(Cld.Vlr);
 
                 _prevPath = currentPath;
 
-                if (_importCloud) 
+                if (ImportCld == true) 
                 { 
                     GetCloud(DA, overRide: true); 
                 } 
                 else
                 {
-                    _asprCld.DisplayDensity = 2; // setting the cloud density above 1 so that the getCloud method triggers on user button click
+                    // setting the cloud density above 1 so that the getCloud method triggers on user button click
+                    Cld.DisplayDensity = 2;
                 }
             }
 
-            //user updates cropshape or inside bool
-            if ((_prevCropShapes != _cropShapes || _prevInside != _insideCrop) && _importCloud)
+            //user updates crop shape or inside bool
+            if ((_prevCropShapes != _cropShapes || _prevInside != _insideCrop) && ImportCld == true)
             {
                 GetCloud(DA, overRide: true);
             }
@@ -153,31 +126,12 @@ namespace siteReader.Components
             //user updates density
             GetCloud(DA);
 
-
             DA.SetDataList(0, _headerOut);
             DA.SetDataList(1, _vlrOut);
-            
         }
 
-        /// <summary>
-        /// Provides an Icon for every component that will be visible in the User Interface.
-        /// Icons need to be 24x24 pixels.
-        /// You can add image files to your project resources and access them like this:
-        /// return Resources.IconForThisComponent;
-        /// </summary>
-        protected override System.Drawing.Bitmap Icon => null;
 
-        /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
-        /// that use the old ID will partially fail during loading.
-        /// </summary>
-        public override Guid ComponentGuid => new Guid("FF31124B-CEA9-474D-9C1A-FB5132D77D74");
-
-
-        //PREVIEW OVERRIDES AND UI METHODS ---------------------------------------------------
-
-        //methods for passing values from UI controller
+        //PREVIEW AND UI ==============================================================================================
         public void SetVal(float value)
         {
             _cloudDensity = value;
@@ -185,69 +139,29 @@ namespace siteReader.Components
 
         public void SetImport(bool import)
         {
-            _importCloud = import;
+            ImportCld = import;
         }
 
-        public void ZoomCloud()
-        {
-            if (_importCloud && _asprCld.PtCloud != null)
-            {
-                var bBox = _asprCld.PtCloud.GetBoundingBox(true);
-
-                var views = RhinoDoc.ActiveDoc.Views.GetViewList(true, false);
-
-                foreach (var view in views)
-                {
-                    view.ActiveViewport.ZoomBoundingBox(bBox);
-                    view.Redraw();
-                }
-            }
-        }
-
-        //This region overrides the typical component layout
         public override void CreateAttributes()
         {
             m_attributes = new SiteReader.UI.DensityZoom(this, SetVal, SetImport, ZoomCloud);
         }
 
-        //drawing the point cloud if preview is enabled
-        public override void DrawViewportWires(IGH_PreviewArgs args)
-        {
-            if (_asprCld != null && _asprCld.PtCloud != null && _importCloud)
-            {
-                args.Display.DrawPointCloud(_asprCld.PtCloud, 2);
-            }
-
-        }
-
-        //Return a BoundingBox that contains all the geometry you are about to draw.
-        public override BoundingBox ClippingBox
-        {
-            get
-            {
-                if (_asprCld != null && _asprCld.PtCloud != null && _importCloud)
-                {
-                    return _asprCld.PtCloud.GetBoundingBox(true);
-                }
-
-                return base.ClippingBox;
-
-            }
-        }
-
-        //need to override this to be previewable despite having no geo output with preview method
-        public override bool IsPreviewCapable => true;
-
-
-        //OTHER METHODS ------------------------------------------------------------
+        //UTILITY METHODS =============================================================================================
+        
+        /// <summary>
+        /// Set's the ptcloud in the asprCld object to density and sets component output.
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="overRide"></param>
         private void GetCloud(IGH_DataAccess da, bool overRide = false)
         {
-            // I added the override bool to initialize the pointcloud regardless of import status when a new file is referenced
-            if (_asprCld != null && _asprCld.DisplayDensity != _cloudDensity && _importCloud || overRide)
+            // override bool to initialize the pointcloud regardless of import status when a new file is referenced
+            if (Cld != null && Cld.DisplayDensity != _cloudDensity && ImportCld == true || (overRide && Cld != null))
             {
-                _asprCld.DisplayDensity = _cloudDensity;
-                _asprCld.GetPointCloud(_cropShapes, _insideCrop);
-                da.SetData(2, new AsprCld(_asprCld));
+                Cld.DisplayDensity = _cloudDensity;
+                Cld.GetPointCloud(_cropShapes, _insideCrop);
+                da.SetData(2, new AsprCld(Cld));
                 RhinoDoc.ActiveDoc.Views.Redraw();
 
                 //update the crop shapes and bool check
@@ -255,5 +169,54 @@ namespace siteReader.Components
                 _prevInside = _insideCrop;
             }
         }
+
+        /// <summary>
+        /// Formats Header dictionary for GH Textural output
+        /// </summary>
+        /// <param name="floatDict"></param>
+        /// <param name="owner"></param>
+        /// <returns></returns>
+        private List<string> FloatDictGhOut(Dictionary<string, float> floatDict, GH_Component owner)
+        {
+            List<string> ghOut = new List<string>();
+
+            if (floatDict.Count == 0)
+            {
+                owner.AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+                    "LAS Header not found. The LAS spec. needs a Header. " +
+                    "Double check your data source as this will probably cause errors down the road.");
+                return ghOut;
+            }
+
+            foreach (string key in floatDict.Keys)
+            {
+                ghOut.Add($"{key} : {floatDict[key]}");
+            }
+            return ghOut;
+        }
+
+        /// <summary>
+        /// formats VLR dictionary for GH textual output
+        /// </summary>
+        /// <param name="stringDict"></param>
+        /// <returns>string list for GH output</returns>
+        private List<string> StringDictGhOut(Dictionary<string, string> stringDict)
+        {
+            List<string> ghOut = new List<string>();
+
+            if (stringDict.Count == 0)
+            {
+                return new List<string> { "No VLRs found." };
+            }
+
+            foreach (string key in stringDict.Keys)
+            {
+                ghOut.Add($"{key} : {stringDict[key]}");
+            }
+            return ghOut;
+        }
+
+        //GUID ========================================================================================================
+        public override Guid ComponentGuid => new Guid("FF31124B-CEA9-474D-9C1A-FB5132D77D74");
     }
 }

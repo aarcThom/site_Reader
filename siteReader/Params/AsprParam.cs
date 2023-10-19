@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Grasshopper.Kernel;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
-using Rhino.Input.Custom;
 
 namespace siteReader.Params
 {
     public class AsprParam : GH_PersistentGeometryParam<AsprCld>, IGH_PreviewObject, IGH_BakeAwareObject
     {
-
-        //constructor that inherits from the base geometry component class
         public AsprParam() : base(new GH_InstanceDescription("ASPR Point Cloud", "Cloud", 
             "A point cloud linked with ASPR info", "SiteReader", "Point Clouds"))
         {
@@ -32,8 +26,6 @@ namespace siteReader.Params
 
         public bool IsBakeCapable => !m_data.IsEmpty;
 
-        
-
         public void BakeGeometry(RhinoDoc doc, List<Guid> obj_ids)
         {
             var defaultAttributes = doc.CreateDefaultAttributes();
@@ -49,7 +41,6 @@ namespace siteReader.Params
                     List<Guid> idsOut = new List<Guid>();
                     obj.BakeGeometry(doc, att, idsOut);
                     obj_ids.AddRange(idsOut);
-
                 }
             }
         }
@@ -66,8 +57,8 @@ namespace siteReader.Params
 
         protected override GH_GetterResult Prompt_Plural(ref List<AsprCld> values)
         {
-            // REMOVED BECAUSE I AM GOING TO HIDE THIS PARAMETER AND DON'T
-            // WANT TO CLUTTER THE ASPRCLD CLASS WITH ANOTHER CONSTRUCTOR
+            // reinstate if you want to be able to reference Rhino pt clouds down the road
+
             /*
 
             List<PointCloud> ptClouds;
@@ -84,11 +75,10 @@ namespace siteReader.Params
 
         }
 
-        //getter for multiple pointclouds
         public GH_GetterResult LoadPlural(out List<PointCloud> ptClouds)
         {
-            // REMOVED BECAUSE I AM GOING TO HIDE THIS PARAMETER AND DON'T
-            // WANT TO CLUTTER THE ASPRCLD CLASS WITH ANOTHER CONSTRUCTOR
+            // reinstate if you want to be able to reference Rhino pt clouds down the road
+
             /*
             var go = new GetObject();
             go.GeometryFilter = ObjectType.PointSet;
@@ -114,6 +104,7 @@ namespace siteReader.Params
 
             return GH_GetterResult.success;
             */
+
             ptClouds = null;
             return GH_GetterResult.cancel;
 
@@ -122,8 +113,8 @@ namespace siteReader.Params
 
         protected override GH_GetterResult Prompt_Singular(ref AsprCld value)
         {
-            // REMOVED BECAUSE I AM GOING TO HIDE THIS PARAMETER AND DON'T
-            // WANT TO CLUTTER THE ASPRCLD CLASS WITH ANOTHER CONSTRUCTOR
+            // reinstate if you want to be able to reference Rhino pt clouds down the road
+
             /*
             PointCloud PtCloud;
             var result = LoadSingular(out PtCloud);
@@ -134,14 +125,14 @@ namespace siteReader.Params
             }
             return result;
             */
+
             return GH_GetterResult.cancel;
         }
 
-
         public GH_GetterResult LoadSingular(out PointCloud ptCloud)
         {
-            // REMOVED BECAUSE I AM GOING TO HIDE THIS PARAMETER AND DON'T
-            // WANT TO CLUTTER THE ASPRCLD CLASS WITH ANOTHER CONSTRUCTOR
+            // reinstate if you want to be able to reference Rhino pt clouds down the road
+
             /*
             var go = new GetObject();
             go.GeometryFilter = ObjectType.PointSet;
@@ -176,10 +167,10 @@ namespace siteReader.Params
                         }
                     }
                 }
-
             }
             return GH_GetterResult.success;
             */
+
             ptCloud = null;
             return GH_GetterResult.cancel;
         }

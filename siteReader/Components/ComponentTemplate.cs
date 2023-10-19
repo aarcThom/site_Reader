@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
@@ -8,11 +7,11 @@ namespace siteReader.Components
 {
     public class ComponentTemplate : CloudBase
     {
-        /// <summary>
-        /// Initializes a new instance of the ComponentTemplate class.
-        /// </summary>
-        /// 
+        //FIELDS ======================================================================================================
 
+        //PROPERTIES ==================================================================================================
+
+        //CONSTRUCTORS ================================================================================================
         public ComponentTemplate()
           : base("ComponentName", "Nickname",
               "Description", "Subcategory")
@@ -21,25 +20,17 @@ namespace siteReader.Components
             IconPath = "siteReader.Resources...";
         }
 
-        /// <summary>
-        /// Registers all the input parameters for this component.
-        /// </summary>
+        //IO ==========================================================================================================
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             base.RegisterInputParams(pManager);
         }
 
-        /// <summary>
-        /// Registers all the output parameters for this component.
-        /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
         }
 
-        /// <summary>
-        /// This is the method that actually does the work.
-        /// </summary>
-        /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
+        //SOLVE =======================================================================================================
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             base.SolveInstance(DA);
@@ -53,13 +44,12 @@ namespace siteReader.Components
             }
         }
 
-        /// <summary>
-        /// Gets the unique ID for this component. Do not change this ID after release.
-        /// MAKE SURE TO CHANGE THIS IF USING THE TEMPLATE!
-        /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("36D4BC06-59B6-49D6-9F2B-8003F7050F10"); }
-        }
+        //PREVIEW AND UI ==============================================================================================
+
+        //UTILITY METHODS =============================================================================================
+
+        //GUID ========================================================================================================
+        // make sure to change this if using template
+        public override Guid ComponentGuid => new Guid("31D0F86A-21AA-4AB1-A071-EB77551C4B70");
     }
 }

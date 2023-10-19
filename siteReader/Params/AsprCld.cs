@@ -77,9 +77,9 @@ namespace siteReader.Params
             _path = path;
             _laszip = new LASzip.Net.laszip();
 
-            _vlr = LasMethods.VlrDict(this);
-            _header = LasMethods.HeaderDict(this);
-            _format = LasMethods.GetPointFormat(this);
+            _vlr = CloudHelpers.VlrDict(this);
+            _header = CloudHelpers.HeaderDict(this);
+            _format = CloudHelpers.GetPointFormat(this);
 
             _ptCloud = new PointCloud();
             this.m_value = _ptCloud; // the geometry for the grasshopper geometricGoo
@@ -244,12 +244,12 @@ namespace siteReader.Params
         public void GetPointCloud(List<Mesh> cropShapes, bool inside)
         {
             (_ptCloud, _intensity, _rgb, _r, _g, _b, _classification, _numReturns) = 
-                LasMethods.GetPtCloud(this, DisplayDensity, cropShapes, inside);
+                CloudHelpers.GetPtCloud(this, DisplayDensity, cropShapes, inside);
         }
 
         public void GetPreview()
         {
-            _ptCloud = LasMethods.GetPreviewCld(this);
+            _ptCloud = CloudHelpers.GetPreviewCld(this);
         }
 
         public void ApplyFieldColors(int fieldNum, List<Color> inColors)
@@ -265,14 +265,14 @@ namespace siteReader.Params
 
             if (fieldNum < uArr.Length)
             {
-                colors = LasMethods.UShortToColor(uArr[fieldNum], inColors, ptCount);
-                _currentField = LasMethods.SetFieldToIntensOrClrChannel(uArr[fieldNum]);
+                colors = CloudHelpers.UShortToColor(uArr[fieldNum], inColors, ptCount);
+                _currentField = CloudHelpers.SetFieldToIntensOrClrChannel(uArr[fieldNum]);
             }
             else
             {
                 fieldNum -= uArr.Length;
-                colors = LasMethods.ByteToColor(bArr[fieldNum], inColors, ptCount);
-                _currentField = LasMethods.SetFieldToClassOrReturns(bArr[fieldNum]);
+                colors = CloudHelpers.ByteToColor(bArr[fieldNum], inColors, ptCount);
+                _currentField = CloudHelpers.SetFieldToClassOrReturns(bArr[fieldNum]);
             }
 
             int colorCount = 0;

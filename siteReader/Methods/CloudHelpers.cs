@@ -5,17 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Drawing;
+using System.Drawing; 
 using g3;
 
 
 namespace siteReader.Methods
 {
-    public static class LasMethods
+    public static class CloudHelpers
     {
-        //LAS METHODS=============================================================================================
+        //LAS METHODS==================================================================================================
         //The methods contained within this class are referenced only by the AsprCld class and the AsprParam class.
-        //========================================================================================================
+        //=============================================================================================================
 
         /// <summary>
         /// decodes and formats the .las VLRs and returns a dictionary of values if any
@@ -27,11 +27,9 @@ namespace siteReader.Methods
             var lz = cld.Laszip;
             var path = cld.Path;
 
-
             Dictionary<string, string> vlrDict = new Dictionary<string, string>();
-            bool isCompressed;
 
-            lz.open_reader(path, out isCompressed);
+            lz.open_reader(path, out bool isCompressed);
 
             if (lz.header.vlrs.Count > 0)
             {
@@ -84,12 +82,10 @@ namespace siteReader.Methods
 
 
             Dictionary<string, float> headerDict = new Dictionary<string, float>();
-            bool isCompressed;
 
-            lz.open_reader(path, out isCompressed);
+            lz.open_reader(path, out bool isCompressed);
 
-            long ptCount;
-            lz.get_number_of_point(out ptCount);
+            lz.get_number_of_point(out long ptCount);
             headerDict.Add("Number of Points", (float)ptCount);
 
 
@@ -148,9 +144,9 @@ namespace siteReader.Methods
                     break;
             }
 
-
             return indices;
         }
+
         /// <summary>
         /// Get the .las cloud point format that determines what fields are available for the cloud
         /// </summary>
@@ -162,12 +158,9 @@ namespace siteReader.Methods
             var lz = cld.Laszip;
             var path = cld.Path;
 
-            byte format = 0;
+            lz.open_reader(path, out bool isCompressed);
 
-            bool isCompressed;
-            lz.open_reader(path, out isCompressed);
-
-            format = lz.header.point_data_format;
+            byte format = lz.header.point_data_format;
 
             lz.close_reader();
 
@@ -196,8 +189,8 @@ namespace siteReader.Methods
         /// <param name="cld">The AsprCloud</param>
         /// <param name="density">The density factor between 0 and 1 to convert to a Rhino cloud.</param>
         /// <param name="crops">Any 3d meshes or Breps to crop the resultant Rhino cloud.</param>
-        /// <param name="inside">If true, points inside the crop will be kept. If false, points outside the crop will be kept.</param>
-        /// <returns>A rhino pointcloud along with field values for each point.</returns>
+        /// <param name="inside">If true, points in crop will be kept. If false, points outside will be kept.</param>
+        /// <returns>A rhino point cloud along with field values for each point.</returns>
         public static (PointCloud, List<ushort>, List<Color>, List<ushort>, List<ushort>, List<ushort>, List<byte>, List<byte>) 
             GetPtCloud(AsprCld cld, float density, List<Mesh> crops, bool inside)
         {
@@ -217,16 +210,14 @@ namespace siteReader.Methods
             var hasRGB = ContainsRGB(format);
 
             var ptCloud = new PointCloud();
-            bool isCompressed;
-            lz.open_reader(path, out isCompressed);
+
+            lz.open_reader(path, out bool isCompressed);
 
             int pointCount = header["Number of Points"].ToInt();
             List<int> densityMask = GetMaskingPattern(density);
 
             //cropping stuff if needed
             DMeshAABBTree3 spatial = BuildSpatialTree(crops);
-
-            var dir = new g3.Vector3d(0, 0, 1); //intersection vector if needed
 
             int maskIx = 0;
             for (int i = 0; i < pointCount; i++)
@@ -244,7 +235,7 @@ namespace siteReader.Methods
                     //testing if point is inside
                     bool hit = spatial != null ? PtInsideCrop(spatial, rPoint, inside) : true;
                     
-                    if (hit == true)
+                    if (hit)
                     {
                         ptCloud.Add(rPoint);
                         intensity.Add(lsPt.intensity);
@@ -268,40 +259,6 @@ namespace siteReader.Methods
             return (ptCloud, intensity, rgb, r, g, b, classification, numReturns);
         }
 
-        // SO IT TURNS OUT Rgb IS REALLY THE ONLY FORMAT SPECIFIC FIELD
-        // IF YOU NEED IT FOR SOME OTHER FIELDS, RESURRECT THIS SWITCH METHOD
-        /*
-        private static bool ContainsField(string field, byte format)
-        {
-            var contains = false;
-
-            switch (field)
-            {
-                case "Intensity":
-                    var iList = new List<byte> {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-                    if (iList.Contains(format)) contains = true;
-                    break;
-
-                case "Rgb":
-                    var rList = new List<byte> { 2, 3, 5, 7, 8, };
-                    if (rList.Contains(format)) contains = true;
-                    break;
-
-                case "Classification":
-                    var cList = new List<byte> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-                    if (cList.Contains(format)) contains = true;
-                    break;
-
-                case "NumReturns":
-                    var nList = new List<byte> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-                    if (nList.Contains(format)) contains = true;
-                    break;
-
-            }
-                return contains;
-            }
-        */
-
         /// <summary>
         /// Spatial tree from Rhino Geometry. For point inclusion testing.
         /// </summary>
@@ -317,7 +274,7 @@ namespace siteReader.Methods
                 cropMesh.Append(mesh);
             }
 
-            DMesh3 dMesh = Utility.MeshtoDMesh(cropMesh);
+            DMesh3 dMesh = Meshing.MeshtoDMesh(cropMesh);
             DMeshAABBTree3 spatial = new DMeshAABBTree3(dMesh);
             spatial.Build();
 
@@ -359,8 +316,7 @@ namespace siteReader.Methods
             var format = cld.PointFormat;
 
             var ptCloud = new PointCloud();
-            bool isCompressed;
-            lz.open_reader(path, out isCompressed);
+            lz.open_reader(path, out bool isCompressed);
 
             int pointCount = header["Number of Points"].ToInt();
             int maskIx = 0;
@@ -392,6 +348,7 @@ namespace siteReader.Methods
                 maskIx++;
                 if (maskIx == 20) maskIx = 0;
             }
+
             lz.close_reader();
             return ptCloud;
         }
@@ -417,7 +374,7 @@ namespace siteReader.Methods
         }
 
         /// <summary>
-        /// Remaps a byte fields (r,g,b, instensity) to the range 0-->1
+        /// Remaps a byte fields (r,g,b, intensity) to the range 0-->1
         /// </summary>
         /// <param name="field">las field to process.</param>
         /// <returns>Normalized list of values.</returns>

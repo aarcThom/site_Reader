@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using Grasshopper.Kernel;
 using System.Drawing;
 using siteReader.Params;
 using System.Linq;
-using siteReader.Methods;
 using System.Windows.Forms;
 using siteReader.UI.features;
 using System.IO;
-using System.Reflection;
 using Rhino.DocObjects;
 using Rhino;
 
@@ -17,9 +14,7 @@ namespace siteReader.Components
 {
     public class FilterByField : CloudBase
     {
-
-        // FIELDS -----------------------------------------------------------------------------------------
-
+        //FIELDS ======================================================================================================
         private int _selectedField = -1;
         private List<Color> _colors;
 
@@ -34,10 +29,7 @@ namespace siteReader.Components
         private List<int> _fieldValCounts;
 
 
-        /// <summary>
-        /// Initializes a new instance of the AssignField class.
-        /// </summary>
-        /// 
+        //CONSTRUCTORS ================================================================================================
         public FilterByField()
           : base("Filter by Field", "Filter",
               "Filter a point cloud based on its LAS fields", "Point Clouds")
@@ -48,18 +40,13 @@ namespace siteReader.Components
             IconPath = "siteReader.Resources.filterField.png";
         }
 
-        /// <summary>
-        /// Registers all the output parameters for this component.
-        /// </summary>
+        //IO ==========================================================================================================
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
         }
 
-        /// <summary>
-        /// This is the method that actually does the work.
-        /// </summary>
-        /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
+        //SOLVE =======================================================================================================
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             base.SolveInstance(DA);
@@ -85,10 +72,11 @@ namespace siteReader.Components
             }
         }
 
-        // PREVIEW OVERRIDES AND UI METHODS --------------------------------------------------------------------
+        //PREVIEW AND UI ==============================================================================================
 
         /// <summary>
-        /// Called primarily by the IGH_attributes. Converts selected field values to the selected gradient and applies to pt cloud.
+        /// Called primarily by the IGH_attributes.
+        /// Converts selected field values to the selected gradient and applies to pt cloud.
         /// </summary>
         /// <param name="selection"></param>
         public void SelectField(int selection)
@@ -135,9 +123,6 @@ namespace siteReader.Components
             return _uniqueFieldVals;
         }
 
-        /// <summary>
-        /// This region overrides the typical component layout
-        /// </summary>
         public override void CreateAttributes()
         {
             m_attributes = new SiteReader.UI.DisplayFields(this, SelectField, SendSelectedField,
@@ -157,7 +142,6 @@ namespace siteReader.Components
                 {
                     args.Display.DrawPointCloud(_previewCloud.PtCloud, 2);
                 }
-
                 else
                 {
                     args.Display.DrawPointCloud(Cld.PtCloud, 2);
@@ -165,7 +149,7 @@ namespace siteReader.Components
             }
         }
 
-        // DROPDOWN MENU --------------------------------------------------------------------------------------
+        // DROPDOWN MENU ==============================================================================================
 
         /// <summary>
         /// Appends the gradient selector to the dropdown menu
@@ -233,7 +217,7 @@ namespace siteReader.Components
             }
         }
 
-        // OVERRIDING BAKING - need to do this to bake the preview cloud ------------------------------------
+        // OVERRIDING BAKING - need to do this to bake the preview cloud ==============================================
         public override void BakeGeometry(RhinoDoc doc, List<Guid> obj_ids)
         {
             BakeGeometry(doc, new ObjectAttributes(), obj_ids);
@@ -251,10 +235,9 @@ namespace siteReader.Components
             }
 
         }
-
         public override bool IsBakeCapable => _previewCloud.PtCloud != null || Cld.PtCloud != null;
 
-        //UTILITY METHODS-------------------------------------------------------------------------------------------------
+        //UTILITY METHODS =============================================================================================
 
         /// <summary>
         /// Filters the point cloud based on handle position's relation to selected field.
@@ -292,15 +275,9 @@ namespace siteReader.Components
             {
                 _fieldValCounts.Add(formattedVals.Count(x => x == val));
             }
-
         }
 
-
-
-        /// <summary>
-        /// Gets the unique ID for this component. Do not change this ID after release.
-        /// MAKE SURE TO CHANGE THIS IF USING THE TEMPLATE!
-        /// </summary>
+        //GUID ========================================================================================================
         public override Guid ComponentGuid => new Guid("31D0F86A-21AA-4AB1-A071-EB77551C4B70");
     }
 }
