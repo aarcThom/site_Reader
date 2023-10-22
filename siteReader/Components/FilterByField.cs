@@ -43,7 +43,8 @@ namespace siteReader.Components
         //IO ==========================================================================================================
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", GH_ParamAccess.item);
+            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", 
+                "A point cloud linked with ASPRS data", GH_ParamAccess.item);
         }
 
         //SOLVE =======================================================================================================

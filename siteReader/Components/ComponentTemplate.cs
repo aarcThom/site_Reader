@@ -35,8 +35,10 @@ namespace siteReader.Components
         {
             base.SolveInstance(DA);
 
-            // clear the UI if cloud input disconnected. Leave blank excepting the return if not needed
-            if (_cldInput == false)
+            // clear the UI if cloud input disconnected. RedrawCanvas() only needed for custom UI components that
+            // need to reset (ie. graphs) when cloud input disconnected. If you don't have a custom UI, you can just
+            // leave this at return or reset whatever values needed.
+            if (CldInput == false)
             {
                 //CLEAR UI DATA HERE
                 //Grasshopper.Instances.RedrawCanvas();
