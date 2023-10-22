@@ -28,6 +28,8 @@ namespace siteReader.Components
         private List<int> _uniqueFieldVals;
         private List<int> _fieldValCounts;
 
+        private IGH_DataAccess _dataAccess;
+
 
         //CONSTRUCTORS ================================================================================================
         public FilterByField()
@@ -51,7 +53,7 @@ namespace siteReader.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             base.SolveInstance(DA);
-
+            _dataAccess = DA; // need this to reset output data on button click later on
             
             // clear the UI if cloud input disconnected
             if (CldInput == false)
@@ -259,6 +261,17 @@ namespace siteReader.Components
 
             _previewCloud = new AsprCld(Cld, filterArr);
             ExpirePreview(true);
+
+            if (_previewCloud != null)
+            {
+                ExpireDownStreamObjects();
+                _dataAccess.SetData(0, _previewCloud);
+
+                foreach (var recipient in this.Params.Output[0].Recipients)
+                {
+                    recipient.ExpireSolution(true);
+                }
+            }
         }
 
         /// <summary>
