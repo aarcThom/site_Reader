@@ -16,9 +16,6 @@ namespace siteReader.Components
     public abstract class CloudBase : SiteReaderBase
     {
         //CONSTRUCTORS ================================================================================================
-
-        // See the below link for a good example of an abstract base class for custom component inheritance:
-        // github.com/mcneel/rhino-developer-samples/blob/5/grasshopper/cs/SamplePlatonics/GrasshopperPlatonics
         protected CloudBase(string name, string nickname, string description, string subCategory)
           : base(name, nickname, description, subCategory)
         {

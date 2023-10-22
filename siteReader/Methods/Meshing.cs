@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using siteReader.Params;
 
 namespace siteReader.Methods
 {
@@ -109,6 +110,12 @@ namespace siteReader.Methods
             }
 
             return dMesh;
+        }
+
+        public static Mesh TesselatePoints(AsprCld cld)
+        {
+            var rPts = cld.PtCloud.GetPoints();
+            return Mesh.CreateFromTessellation(rPts, null, Plane.WorldXY, false);
         }
     }
 }
