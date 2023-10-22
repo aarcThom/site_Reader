@@ -261,13 +261,13 @@ namespace siteReader.Components
 
             _previewCloud = new AsprCld(Cld, filterArr);
             ExpirePreview(true);
-
+            
             if (_previewCloud != null)
             {
                 ExpireDownStreamObjects();
                 _dataAccess.SetData(0, _previewCloud);
 
-                foreach (var recipient in this.Params.Output[0].Recipients)
+                foreach (var recipient in Params.Output[0].Recipients)
                 {
                     recipient.ExpireSolution(true);
                 }

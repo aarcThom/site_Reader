@@ -24,7 +24,7 @@ namespace siteReader.Components
         //PREVIEW AND UI ==============================================================================================
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if ((Cld != null && Cld.PtCloud != null) && (ImportCld == true || !ImportCld.HasValue))
+            if ((Cld != null && Cld.PtCloud != null) && (ImportCld == true || !ImportCld.HasValue) && !Locked)
             {
                 args.Display.DrawPointCloud(Cld.PtCloud, 2);
             }
