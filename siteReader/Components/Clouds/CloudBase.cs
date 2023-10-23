@@ -13,30 +13,19 @@ namespace siteReader.Components.Clouds
      * to overwrite methods that it does not overwrite, such as Guid, It’s just good practice I think.
      */
 
-    public abstract class CloudBase : GH_Component
+    public abstract class CloudBase : SiteReaderBase
     {
         //FIELDS ======================================================================================================
-
-        // NOTE: See james-ramsden.com/grasshopperdocument-component-grasshopper-visual-studio/
-        // for referencing component and grasshopper document in VS
-        GH_Document GrasshopperDocument;
-        IGH_Component Component;
-
-        //grabbing embedded resources
-        protected readonly Assembly GHAssembly = Assembly.GetExecutingAssembly();
-
         protected AsprCld Cld;
         protected bool CldInput; //used to check if their is input in the inheriting components
         protected bool? ImportCld; //used if a component has an import cld button. bool? = nullable bool.
-
-        protected string IconPath;
 
         //CONSTRUCTORS ================================================================================================
 
         // See the below link for a good example of an abstract base class for custom component inheritance:
         // github.com/mcneel/rhino-developer-samples/blob/5/grasshopper/cs/SamplePlatonics/GrasshopperPlatonics
         protected CloudBase(string name, string nickname, string description, string subCategory)
-          : base(name, nickname, description, "SiteReader", subCategory)
+          : base(name, nickname, description, subCategory)
         {
         }
 
@@ -57,7 +46,7 @@ namespace siteReader.Components.Clouds
         //SOLVE =======================================================================================================
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //Retrieve the input data from the Aspr Cloud input
+            //Retrieve the input data from the ASPR Cloud input
             //NOTE: The inheriting component needs to return if CldInput == false
             AsprCld cld = new AsprCld();
             if (!DA.GetData(0, ref cld))
@@ -79,23 +68,6 @@ namespace siteReader.Components.Clouds
                     CldInput = true;
                 }
 
-            }
-        }
-
-        /// <summary>
-        /// Provides an Icon for the component. Defaults to generic icon if none provided.
-        /// </summary>
-        protected override Bitmap Icon
-        {
-            get
-            {
-                if (IconPath == null)
-                {
-                    IconPath = "siteReader.Resources.generic.png";
-                }
-
-                var stream = GHAssembly.GetManifestResourceStream(IconPath);
-                return new Bitmap(stream);
             }
         }
     }
