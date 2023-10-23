@@ -10,9 +10,9 @@ using System.IO;
 using Rhino.DocObjects;
 using Rhino;
 
-namespace siteReader.Components
+namespace siteReader.Components.Clouds
 {
-    public class FilterByField : CloudBase
+    public class FilterByField : CloudDisplay
     {
         //FIELDS ======================================================================================================
         private int _selectedField = -1;
@@ -20,7 +20,7 @@ namespace siteReader.Components
 
         private int _gradientSelection;
 
-        private List<float> _handleValues = new List<float> { 0f, 1f};
+        private List<float> _handleValues = new List<float> { 0f, 1f };
 
         private AsprCld _previewCloud;
 
@@ -45,7 +45,7 @@ namespace siteReader.Components
         //IO ==========================================================================================================
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", 
+            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld",
                 "A point cloud linked with ASPRS data", GH_ParamAccess.item);
         }
 
@@ -54,7 +54,7 @@ namespace siteReader.Components
         {
             base.SolveInstance(DA);
             _dataAccess = DA; // need this to reset output data on button click later on
-            
+
             // clear the UI if cloud input disconnected
             if (CldInput == false)
             {
@@ -64,7 +64,7 @@ namespace siteReader.Components
                 Grasshopper.Instances.RedrawCanvas();
                 return;
             }
-            
+
             if (_previewCloud != null)
             {
                 DA.SetData(0, _previewCloud);
@@ -184,13 +184,13 @@ namespace siteReader.Components
 
                 if (img != null)
                 {
-                    GH_Component.Menu_AppendItem(menu, gradName, Menu_GradientSelect, img);
+                    Menu_AppendItem(menu, gradName, Menu_GradientSelect, img);
                 }
                 else
                 {
-                    GH_Component.Menu_AppendItem(menu, gradName, Menu_GradientSelect);
+                    Menu_AppendItem(menu, gradName, Menu_GradientSelect);
                 }
-                
+
             }
         }
 
@@ -207,7 +207,7 @@ namespace siteReader.Components
                 _colors = CloudColors.GetColorList(_gradientSelection);
                 if (Cld != null) SelectField(_selectedField);
                 Grasshopper.Instances.RedrawCanvas();
-                
+
 
                 if (_previewCloud != null)
                 {
@@ -261,7 +261,7 @@ namespace siteReader.Components
 
             _previewCloud = new AsprCld(Cld, filterArr);
             ExpirePreview(true);
-            
+
             if (_previewCloud != null)
             {
                 ExpireDownStreamObjects();
@@ -285,7 +285,7 @@ namespace siteReader.Components
 
             _fieldValCounts = new List<int>();
 
-            foreach(var val in _uniqueFieldVals)
+            foreach (var val in _uniqueFieldVals)
             {
                 _fieldValCounts.Add(formattedVals.Count(x => x == val));
             }

@@ -5,14 +5,14 @@ using Rhino.Geometry;
 
 namespace siteReader.Components
 {
-    public class ComponentTemplate : CloudBase
+    public class __ComponentTemplate : CloudBase
     {
         //FIELDS ======================================================================================================
 
         //PROPERTIES ==================================================================================================
 
         //CONSTRUCTORS ================================================================================================
-        public ComponentTemplate()
+        public __ComponentTemplate()
           : base("ComponentName", "Nickname",
               "Description", "Subcategory")
         {

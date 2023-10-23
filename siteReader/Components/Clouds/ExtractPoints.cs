@@ -5,9 +5,9 @@ using Grasshopper.Kernel;
 using Rhino.Geometry;
 using siteReader.Params;
 
-namespace siteReader.Components
+namespace siteReader.Components.Clouds
 {
-    public class ExtractPoints : SiteReaderBase
+    public class ExtractPoints : CloudBase
     {
         //CONSTRUCTORS ================================================================================================
         public ExtractPoints()

@@ -5,7 +5,7 @@ using siteReader.Params;
 using System.Drawing;
 using siteReader.Methods;
 
-namespace siteReader.Components
+namespace siteReader.Components.Clouds
 {
     /* Getting around the GUID:
      * https://discourse.mcneel.com/t/c-grasshopper-component-inheritance/60039/2
@@ -13,7 +13,7 @@ namespace siteReader.Components
      * to overwrite methods that it does not overwrite, such as Guid, It’s just good practice I think.
      */
 
-    public abstract class SiteReaderBase : GH_Component
+    public abstract class CloudBase : GH_Component
     {
         //FIELDS ======================================================================================================
 
@@ -35,22 +35,22 @@ namespace siteReader.Components
 
         // See the below link for a good example of an abstract base class for custom component inheritance:
         // github.com/mcneel/rhino-developer-samples/blob/5/grasshopper/cs/SamplePlatonics/GrasshopperPlatonics
-        protected SiteReaderBase(string name, string nickname, string description, string subCategory)
+        protected CloudBase(string name, string nickname, string description, string subCategory)
           : base(name, nickname, description, "SiteReader", subCategory)
         {
         }
 
 
         //IO ==========================================================================================================
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data", 
+            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", "A point cloud linked with ASPRS data",
                 GH_ParamAccess.item);
 
             pManager[0].Optional = true;
         }
 
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
         }
 

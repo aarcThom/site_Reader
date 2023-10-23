@@ -2,9 +2,9 @@
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace siteReader.Components
+namespace siteReader.Components.Clouds
 {
-    public class HeaderInfo : CloudBase
+    public class HeaderInfo : CloudDisplay
     {
         //CONSTRUCTORS ================================================================================================
         public HeaderInfo()
@@ -16,18 +16,18 @@ namespace siteReader.Components
         }
 
         //IO ==========================================================================================================
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddIntegerParameter("Point Count", "PtCnt", "The number of points in the .las file", 
+            pManager.AddIntegerParameter("Point Count", "PtCnt", "The number of points in the .las file",
                 GH_ParamAccess.item);
 
-            pManager.AddPointParameter("Minimum XYZ Point", "MinPt", 
+            pManager.AddPointParameter("Minimum XYZ Point", "MinPt",
                 "The minimum XYZ values in the cloud as a point3d", GH_ParamAccess.item);
 
-            pManager.AddPointParameter("Maximum XYZ Point", "MaxPt", 
+            pManager.AddPointParameter("Maximum XYZ Point", "MaxPt",
                 "The maximum XYZ values in the cloud as a point3d", GH_ParamAccess.item);
 
-            pManager.AddIntegerParameter("Point Format", "PtFrmt", 
+            pManager.AddIntegerParameter("Point Format", "PtFrmt",
                 "The .las 1.4 point format. See standards for included fields", GH_ParamAccess.item);
         }
 
@@ -38,9 +38,9 @@ namespace siteReader.Components
             base.SolveInstance(DA);
             if (CldInput == false) return;
 
-            if (Cld.Header == null) 
+            if (Cld.Header == null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, 
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
                     "This cloud has no Header. Most likely a rhino referenced point cloud.");
                 return;
             }
@@ -68,6 +68,6 @@ namespace siteReader.Components
 
         //GUID ========================================================================================================
         public override Guid ComponentGuid => new Guid("2244C6D1-85AC-4E0C-A4CB-55549DB009BD");
-    
+
     }
 }

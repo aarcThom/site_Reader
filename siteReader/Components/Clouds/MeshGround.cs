@@ -4,14 +4,14 @@ using Grasshopper.Kernel;
 using Rhino.Geometry;
 using siteReader.Methods;
 
-namespace siteReader.Components
+namespace siteReader.Components.Clouds
 {
-    public class MeshGround : SiteReaderBase
+    public class MeshGround : CloudBase
     {
         //CONSTRUCTORS ================================================================================================
         public MeshGround()
           : base("Mesh Ground", "Mesh G",
-              "Tessellate a point cloud using the XY plane to get a mesh. Works best for ground surfaces.", 
+              "Tessellate a point cloud using the XY plane to get a mesh. Works best for ground surfaces.",
               "Point Clouds")
         {
 

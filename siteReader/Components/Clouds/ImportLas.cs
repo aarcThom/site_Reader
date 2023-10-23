@@ -7,9 +7,9 @@ using siteReader.Params;
 using Rhino.Geometry;
 using siteReader.Methods;
 
-namespace siteReader.Components
+namespace siteReader.Components.Clouds
 {
-    public class ImportLas : CloudBase
+    public class ImportLas : CloudDisplay
     {
         //FIELDS ======================================================================================================
         private string _prevPath = string.Empty;
@@ -38,11 +38,11 @@ namespace siteReader.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("file Path", "Path", "Path to LAS or LAZ file.", GH_ParamAccess.item);
-            pManager.AddMeshParameter("Crop Shape", "Crop", "Provide breps or meshes to crop your cloud upon import.", 
+            pManager.AddMeshParameter("Crop Shape", "Crop", "Provide breps or meshes to crop your cloud upon import.",
                 GH_ParamAccess.list);
 
             pManager[1].Optional = true;
-            pManager.AddBooleanParameter("Inside Crop", "InCrp", 
+            pManager.AddBooleanParameter("Inside Crop", "InCrp",
                 "If set to true (default), pts will be kept inside the crop shape. " +
                 "False will retain points outside the crop shape.", GH_ParamAccess.item, true);
         }
@@ -53,7 +53,7 @@ namespace siteReader.Components
             pManager.AddTextParameter("VLR", "VLR", "Variable length records - if present in file.",
                 GH_ParamAccess.list);
 
-            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld", 
+            pManager.AddParameter(new AsprParam(), "ASPR Cloud", "cld",
                 "A point cloud linked with ASPRS data", GH_ParamAccess.item);
         }
 
@@ -68,10 +68,10 @@ namespace siteReader.Components
                 if (Cld != null)
                 {
                     Cld = null; //clear the cloud if need be (doesn't work)
-                    _prevPath = String.Empty;
-                } 
+                    _prevPath = string.Empty;
+                }
                 return;
-            } 
+            }
 
             if (!File.Exists(currentPath))
             {
@@ -86,7 +86,7 @@ namespace siteReader.Components
             }
 
             var cropShapes = new List<Mesh>();
-            if(DA.GetDataList(1, cropShapes))
+            if (DA.GetDataList(1, cropShapes))
             {
                 _cropShapes = cropShapes;
             }
@@ -106,10 +106,10 @@ namespace siteReader.Components
 
                 _prevPath = currentPath;
 
-                if (ImportCld == true) 
-                { 
-                    GetCloud(DA, overRide: true); 
-                } 
+                if (ImportCld == true)
+                {
+                    GetCloud(DA, overRide: true);
+                }
                 else
                 {
                     // setting the cloud density above 1 so that the getCloud method triggers on user button click
@@ -148,7 +148,7 @@ namespace siteReader.Components
         }
 
         //UTILITY METHODS =============================================================================================
-        
+
         /// <summary>
         /// Set's the ptcloud in the asprCld object to density and sets component output.
         /// </summary>
@@ -157,7 +157,7 @@ namespace siteReader.Components
         private void GetCloud(IGH_DataAccess da, bool overRide = false)
         {
             // override bool to initialize the pointcloud regardless of import status when a new file is referenced
-            if (Cld != null && Cld.DisplayDensity != _cloudDensity && ImportCld == true || (overRide && Cld != null))
+            if (Cld != null && Cld.DisplayDensity != _cloudDensity && ImportCld == true || overRide && Cld != null)
             {
                 Cld.DisplayDensity = _cloudDensity;
                 Cld.GetPointCloud(_cropShapes, _insideCrop);

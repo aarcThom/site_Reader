@@ -6,7 +6,7 @@ using System.Drawing;
 using siteReader.Methods;
 using System.Diagnostics;
 
-namespace siteReader.Components
+namespace siteReader.Components.Clouds
 {
     /* Getting around the GUID:
      * https://discourse.mcneel.com/t/c-grasshopper-component-inheritance/60039/2
@@ -14,10 +14,10 @@ namespace siteReader.Components
      * to overwrite methods that it does not overwrite, such as Guid, It’s just good practice I think.
      */
 
-    public abstract class CloudBase : SiteReaderBase
+    public abstract class CloudDisplay : CloudBase
     {
         //CONSTRUCTORS ================================================================================================
-        protected CloudBase(string name, string nickname, string description, string subCategory)
+        protected CloudDisplay(string name, string nickname, string description, string subCategory)
           : base(name, nickname, description, subCategory)
         {
         }
@@ -25,7 +25,7 @@ namespace siteReader.Components
         //PREVIEW AND UI ==============================================================================================
         public override void DrawViewportWires(IGH_PreviewArgs args)
         {
-            if ((Cld != null && Cld.PtCloud != null) && (ImportCld == true || !ImportCld.HasValue) && !Locked)
+            if (Cld != null && Cld.PtCloud != null && (ImportCld == true || !ImportCld.HasValue) && !Locked)
             {
                 args.Display.DrawPointCloud(Cld.PtCloud, 2);
             }
@@ -35,7 +35,7 @@ namespace siteReader.Components
         {
             get
             {
-                if ((Cld != null && Cld.PtCloud != null) && (ImportCld == true || !ImportCld.HasValue))
+                if (Cld != null && Cld.PtCloud != null && (ImportCld == true || !ImportCld.HasValue))
                 {
                     return Cld.PtCloud.GetBoundingBox(true);
                 }

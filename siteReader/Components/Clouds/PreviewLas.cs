@@ -5,9 +5,9 @@ using Rhino;
 using siteReader.Params;
 using siteReader.Methods;
 
-namespace siteReader.Components
+namespace siteReader.Components.Clouds
 {
-    public class PreviewLas: CloudBase
+    public class PreviewLas : CloudDisplay
     {
         //CONSTRUCTORS ================================================================================================
         public PreviewLas()

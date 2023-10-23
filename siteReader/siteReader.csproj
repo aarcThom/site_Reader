@@ -9,6 +9,7 @@
   </PropertyGroup>
 	
   <ItemGroup>
+    <Compile Remove="Components\Clouds\__ComponentTemplate.cs" />
     <Compile Remove="Components\ComponentTemplate.cs" />
   </ItemGroup>
 	
@@ -66,6 +67,10 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Components\ShapeFiles\" />
   </ItemGroup>
 
 </Project>
