@@ -4,6 +4,7 @@ using Rhino.Geometry;
 using siteReader.Params;
 using System.Drawing;
 using siteReader.Methods;
+using System.Diagnostics;
 
 namespace siteReader.Components
 {

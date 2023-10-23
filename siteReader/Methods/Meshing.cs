@@ -112,10 +112,62 @@ namespace siteReader.Methods
             return dMesh;
         }
 
-        public static Mesh TesselatePoints(AsprCld cld)
+        public static Mesh TesselatePoints(AsprCld cld, double maxLength = 10000000000000000000)
         {
             var rPts = cld.PtCloud.GetPoints();
-            return Mesh.CreateFromTessellation(rPts, null, Plane.WorldXY, false);
+            var mesh = Mesh.CreateFromTessellation(rPts, null, Plane.WorldXY, false);
+
+
+            if (maxLength < 10000000000000000000)
+            {
+                var faces = mesh.Faces;
+                var vertices = mesh.Vertices.ToPoint3dArray();
+
+                List<int> longFaces = new List<int>();
+
+                for (int i = 0; i < faces.Count; i++)
+                {
+                    var face = faces[i];
+                    if (GetFaceLongestEdge(face, vertices) > maxLength)
+                    {
+                        longFaces.Add(i);
+                    }
+                }
+
+                mesh.Faces.DeleteFaces(longFaces);
+                mesh.Compact();
+            }
+            
+
+            return mesh;
+        }
+
+        private static double GetFaceLongestEdge(MeshFace face, Point3d[] verts)
+        {
+            List<double> distances = new List<double>();
+            distances.Add(DistanceTweenVertices(face.A, face.B, verts));
+            distances.Add(DistanceTweenVertices(face.B, face.C, verts));
+
+            if (face.IsQuad)
+            {
+                distances.Add(DistanceTweenVertices(face.C, face.D, verts));
+                distances.Add(DistanceTweenVertices(face.D, face.A, verts));
+            }
+            else
+            {
+                distances.Add(DistanceTweenVertices(face.C, face.A, verts));
+            }
+
+            return distances.Max();
+
+        }
+
+        private static double DistanceTweenVertices(int a, int b, Point3d[] verts)
+        {
+            var ptA = verts[a];
+            var ptB = verts[b];
+
+            return ptA.DistanceTo(ptB);
         }
     }
 }

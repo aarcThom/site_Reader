@@ -17,6 +17,16 @@ namespace siteReader.Components
 
             //IconPath = "siteReader.Resources...";
         }
+
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
+        {
+            base.RegisterInputParams(pManager);
+            pManager.AddNumberParameter("Max. Edge Length", "Max Edge",
+                "The maximum allowed mesh edge length. Leave blank if you want no holes or splits in your mesh.",
+                GH_ParamAccess.item);
+            pManager[1].Optional = true;
+        }
+
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddMeshParameter("Ground Mesh", "mesh", "A 2.5D meshing of the supplied point cloud",
@@ -33,7 +43,16 @@ namespace siteReader.Components
                 return;
             }
 
-            var mesh = Meshing.TesselatePoints(Cld);
+            Mesh mesh;
+            double maxLen = 0;
+            if (!DA.GetData(1, ref maxLen))
+            {
+                mesh = Meshing.TesselatePoints(Cld);
+            }
+            else
+            {
+                mesh = Meshing.TesselatePoints(Cld, maxLen);
+            }
 
             DA.SetData(0, mesh);
         }
