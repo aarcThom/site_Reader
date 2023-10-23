@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Remove="Components\Clouds\__ComponentTemplate.cs" />
     <Compile Remove="Components\ComponentTemplate.cs" />
+    <Compile Remove="Components\ShapeFiles\shape template.cs" />
   </ItemGroup>
 	
   <ItemGroup>

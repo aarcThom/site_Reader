@@ -4,6 +4,7 @@ using System.IO;
 using Rhino;
 using siteReader.Params;
 using siteReader.Methods;
+using System.Collections.Generic;
 
 namespace siteReader.Components.Clouds
 {
@@ -35,18 +36,12 @@ namespace siteReader.Components.Clouds
             string currentPath = string.Empty;
             if (!DA.GetData(0, ref currentPath)) return;
 
-            if (!File.Exists(currentPath))
+            var fTypes = new List<string>() { ".las", ".laz" };
+            if (!Utility.TestFile(currentPath, fTypes, out string msg))
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Cannot find file");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
                 return;
             }
-
-            if (!Utility.TestLasExt(currentPath))
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You must provide a valid .las or .laz file.");
-                return;
-            }
-
 
             //initial import
             if (_prevPath != currentPath)

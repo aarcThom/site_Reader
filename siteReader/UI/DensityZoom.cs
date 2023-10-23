@@ -49,7 +49,6 @@ namespace SiteReader.UI
         private RectangleF _sliderBounds;
         private RectangleF _handleShape;
         private PointF _handleNum;
-        private RectangleF _secondCapsuleBounds;
 
         //preview the Cloud?
         private bool _importCloud = false;

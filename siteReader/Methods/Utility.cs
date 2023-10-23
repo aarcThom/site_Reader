@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Rhino.Geometry;
 using Rhino;
+using Grasshopper.Kernel;
 
 namespace siteReader.Methods
 {
@@ -41,18 +43,65 @@ namespace siteReader.Methods
             }
         }
 
+
+        public static bool TestFile(string path, List<string> fileTypes, out string message)
+        {
+            message = null;
+
+            if (!File.Exists(path))
+            {
+                message = "Cannot find file";
+                return false;
+            }
+
+            if (!TestFileExt(path, fileTypes))
+            {
+                message = formatExtMsg(fileTypes);
+                return false;
+            }
+
+            return true;
+
+        }
+
+        private static string formatExtMsg(List<string> exts)
+        {
+            string msg = "You must provide a valid ";
+
+            if (exts.Count == 1)
+            {
+                return msg + exts[0] + " file.";
+            }
+
+            for (int i = 0; i < exts.Count; i++)
+            {
+                if (i < exts.Count - 1)
+                {
+                    msg += exts[i] + ", ";
+                }
+                else
+                {
+                    msg += "or " + exts[i] + " file.";
+                }
+            }
+            return msg;
+        }
+
         /// <summary>
         /// tests if file Path is .las or .laz
         /// </summary>
         /// <param name="path">the file Path to test</param>
         /// <returns>true if .las or .laz</returns>
-        public static bool TestLasExt(string path)
+        private static bool TestFileExt(string path, List<string>types)
         {
             string fileExt = Path.GetExtension(path);
 
-            if (fileExt == ".las" || fileExt == ".laz")
+            foreach (var type in types)
             {
-                return true;
+                if (fileExt == type)
+                {
+                    return true;
+                }
             }
             return false;
         }

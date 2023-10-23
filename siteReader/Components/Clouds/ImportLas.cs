@@ -73,15 +73,10 @@ namespace siteReader.Components.Clouds
                 return;
             }
 
-            if (!File.Exists(currentPath))
+            var fTypes = new List<string>() { ".las", ".laz" };
+            if (!Utility.TestFile(currentPath, fTypes, out string msg))
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Cannot find file");
-                return;
-            }
-
-            if (!Utility.TestLasExt(currentPath))
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "You must provide a valid .las or .laz file.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
                 return;
             }
 

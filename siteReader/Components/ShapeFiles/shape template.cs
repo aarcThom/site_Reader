@@ -41,6 +41,7 @@ namespace siteReader.Components
         //UTILITY METHODS =============================================================================================
 
         //GUID ========================================================================================================
+        // make sure to change this if using template
         public override Guid ComponentGuid => new Guid("F0284E1D-C6B6-4C98-8CEC-200F07B2D234");
     }
 }
