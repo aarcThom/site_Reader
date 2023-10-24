@@ -44,11 +44,11 @@
   
   <ItemGroup>
     <PackageReference Include="Aardvark.Data.Points.LasZip" Version="5.2.25" />
-    <PackageReference Include="EGIS.ShapeFileLib" Version="4.8.7" />
+    <PackageReference Include="DotSpatial.Data" Version="3.0.1" />
     <PackageReference Include="GDAL" Version="3.7.1" />
     <PackageReference Include="geometry3Sharp" Version="1.0.324" />
     <PackageReference Include="Grasshopper" Version="7.32.23221.10241" IncludeAssets="compile;build" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   

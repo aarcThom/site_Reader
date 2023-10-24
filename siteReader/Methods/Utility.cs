@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using Grasshopper;
 using Rhino.Geometry;
 using Rhino;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
 
 namespace siteReader.Methods
 {
@@ -104,6 +106,22 @@ namespace siteReader.Methods
                 }
             }
             return false;
+        }
+
+        public static DataTree<string> CreateStringTree(List<List<string>> inLists)
+        {
+            DataTree<string> treeOut = new DataTree<string>();
+
+            for (int i = 0; i < inLists.Count; i++)
+            {
+                for (int j = 0; j < inLists[i].Count; j++)
+                {
+                    GH_Path path = new GH_Path(i, j);
+                    treeOut.Add(inLists[i][j], path);
+                }
+            }
+
+            return treeOut;
         }
     }
 }
